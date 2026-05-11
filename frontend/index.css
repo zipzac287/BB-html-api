@@ -1,0 +1,953 @@
+/* ============================================================
+       PHẦN 1: CSS VARIABLES (Biến CSS)
+       ============================================================
+       📚 HỌC: CSS Custom Properties (Variables)
+       - Khai báo trong :root → dùng được ở mọi nơi
+       - Cú pháp: --tên-biến: giá-trị;
+       - Sử dụng: color: var(--tên-biến);
+       - Lợi ích: đổi màu toàn app chỉ cần đổi 1 chỗ
+
+       🎨 Bảng màu chủ đề: "Medical Dark"
+       Tone tối, chuyên nghiệp → phù hợp môi trường y tế
+    ============================================================ */
+    :root {
+      /* --- Màu nền (từ tối → sáng dần) --- */
+      --bg-900: #0a0d12;      /* Nền tối nhất (body) */
+      --bg-800: #111520;      /* Card chính */
+      --bg-700: #161b2e;      /* Card hover */
+      --bg-600: #1e253d;      /* Input, sidebar */
+      --bg-500: #252d47;      /* Border subtle */
+
+      /* --- Màu chính: Đỏ máu --- */
+      --red-600: #c0392b;     /* Màu chính */
+      --red-500: #e74c3c;     /* Hover state */
+      --red-400: #ff6b6b;     /* Accent sáng */
+      --red-glow: rgba(192, 57, 43, 0.25); /* Glow effect */
+
+      /* --- Màu chữ --- */
+      --text-100: #f0f2f7;    /* Chữ chính (trắng mờ) */
+      --text-300: #8892aa;    /* Chữ phụ (xám) */
+      --text-500: #4a5568;    /* Placeholder, disabled */
+
+      /* --- Màu trạng thái --- */
+      --green: #27ae60;       /* Thành công */
+      --green-bg: rgba(39, 174, 96, 0.12);
+      --amber: #f39c12;       /* Cảnh báo */
+      --amber-bg: rgba(243, 156, 18, 0.12);
+      --blue: #3498db;        /* Thông tin */
+      --blue-bg: rgba(52, 152, 219, 0.12);
+
+      /* --- Spacing System (hệ thống khoảng cách) ---
+         📚 HỌC: Dùng bội số của 4px hoặc 8px
+         Tạo sự nhất quán trong toàn bộ layout
+      */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+
+      /* --- Typography Scale --- */
+      --text-xs: 11px;
+      --text-sm: 13px;
+      --text-base: 15px;
+      --text-lg: 18px;
+      --text-xl: 22px;
+      --text-2xl: 28px;
+
+      /* --- Border & Shadow --- */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --border: 1px solid rgba(255,255,255,0.07);
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --shadow-red: 0 0 30px var(--red-glow);
+
+      /* --- Transition (hiệu ứng chuyển động) ---
+         📚 HỌC: transition shorthand
+         property | duration | timing-function
+         "all 0.2s ease" = mọi thuộc tính đổi trong 0.2s
+      */
+      --transition: all 0.2s ease;
+    }
+
+    /* ============================================================
+       PHẦN 2: RESET & BASE STYLES
+       ============================================================
+       📚 HỌC: CSS Reset
+       Trình duyệt có style mặc định khác nhau (margin, padding...)
+       Reset về 0 để đồng nhất giữa Chrome, Firefox, Safari
+    ============================================================ */
+
+    /* * selector = áp dụng cho MỌI element */
+    *, *::before, *::after {
+      box-sizing: border-box; /* padding không làm element to hơn */
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px; /* Base font size — 1rem = 16px */
+      scroll-behavior: smooth; /* Cuộn mượt khi nhảy đến anchor */
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      font-size: var(--text-base);
+      color: var(--text-100);
+      background-color: var(--bg-900);
+      line-height: 1.6;
+      min-height: 100vh; /* Ít nhất cao bằng màn hình */
+
+      /*
+        📚 HỌC: Background pattern
+        Tạo grid dots bằng radial-gradient
+        Làm nền trông chuyên nghiệp hơn solid color
+      */
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(192,57,43,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(52,152,219,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+      background-size: auto, auto, 32px 32px;
+    }
+
+    /* ============================================================
+       PHẦN 3: LAYOUT — APP SHELL
+       ============================================================
+       📚 HỌC: CSS Grid cho layout tổng thể
+       App chia làm 2 cột: sidebar (240px) + main content (còn lại)
+
+       grid-template-columns: 240px 1fr
+       → cột 1: cố định 240px
+       → cột 2: 1fr = lấy hết phần còn lại (fr = fraction)
+    ============================================================ */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+
+      /* Ẩn khi chưa đăng nhập */
+      display: none;
+    }
+    .app-shell.visible { display: grid; }
+
+    /* ============================================================
+       PHẦN 4: SIDEBAR
+    ============================================================ */
+    .sidebar {
+      grid-row: 1 / -1; /* Trải dài từ row 1 đến hết */
+      background: var(--bg-800);
+      border-right: var(--border);
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4) 0 var(--space-6);
+      border-bottom: var(--border);
+      margin-bottom: var(--space-4);
+    }
+
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: var(--red-600);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: var(--shadow-red);
+
+      /*
+        📚 HỌC: CSS Animation
+        Định nghĩa animation bằng @keyframes (ở dưới)
+        pulse 3s ease-in-out infinite → lặp mãi mãi
+      */
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: var(--text-lg);
+      color: var(--text-100);
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text span {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: var(--text-xs);
+      font-weight: 400;
+      color: var(--text-300);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* Nav items trong sidebar */
+    .nav-label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-500);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: var(--space-4) var(--space-3) var(--space-2);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      color: var(--text-300);
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid transparent;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      user-select: none;
+    }
+
+    /*
+      📚 HỌC: :hover pseudo-class
+      Áp dụng style khi chuột hover vào element
+    */
+    .nav-item:hover {
+      background: var(--bg-600);
+      color: var(--text-100);
+      border-color: rgba(255,255,255,0.06);
+    }
+
+    /*
+      📚 HỌC: Class modifier pattern
+      .nav-item.active = element có CẢ HAI class "nav-item" VÀ "active"
+      Dùng JS để toggle class active
+    */
+    .nav-item.active {
+      background: rgba(192, 57, 43, 0.15);
+      color: var(--red-400);
+      border-color: rgba(192, 57, 43, 0.3);
+    }
+
+    .nav-icon {
+      width: 18px; height: 18px;
+      opacity: 0.7;
+      flex-shrink: 0; /* Không bị co lại */
+    }
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    /* User info ở cuối sidebar */
+    .sidebar-footer {
+      margin-top: auto; /* Đẩy xuống cuối cùng */
+      padding-top: var(--space-4);
+      border-top: var(--border);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      background: var(--bg-600);
+    }
+
+    .user-avatar {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--red-600), var(--red-400));
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .user-name {
+      font-size: var(--text-sm);
+      font-weight: 500;
+      color: var(--text-100);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis; /* Thêm "..." nếu text dài quá */
+    }
+
+    .user-role {
+      font-size: var(--text-xs);
+      color: var(--text-300);
+    }
+
+    .btn-logout {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--text-500);
+      cursor: pointer;
+      padding: var(--space-1);
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .btn-logout:hover { color: var(--red-400); }
+
+    /* ============================================================
+       PHẦN 5: MAIN CONTENT AREA
+    ============================================================ */
+    .main-content {
+      padding: var(--space-8);
+      overflow-y: auto;
+      max-height: 100vh;
+    }
+
+    /* Page header */
+    .page-header {
+      margin-bottom: var(--space-8);
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: var(--text-2xl);
+      color: var(--text-100);
+      line-height: 1.2;
+    }
+
+    .page-subtitle {
+      font-size: var(--text-sm);
+      color: var(--text-300);
+      margin-top: var(--space-2);
+    }
+
+    /* Pages — ẩn/hiện */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ============================================================
+       PHẦN 6: CARDS — Khối nội dung chính
+       ============================================================
+       📚 HỌC: Card pattern
+       Card = container với background, border, border-radius
+       Là building block phổ biến nhất trong UI hiện đại
+    ============================================================ */
+    .card {
+      background: var(--bg-800);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      transition: var(--transition);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-6);
+    }
+
+    .card-title {
+      font-size: var(--text-lg);
+      font-weight: 600;
+      color: var(--text-100);
+    }
+
+    .card-subtitle {
+      font-size: var(--text-sm);
+      color: var(--text-300);
+      margin-top: 2px;
+    }
+
+    /* ============================================================
+       PHẦN 7: STATS GRID — Dashboard tồn kho
+       ============================================================
+       📚 HỌC: CSS Grid auto-fill
+       repeat(auto-fill, minmax(200px, 1fr))
+       → Tự động tạo nhiều cột, mỗi cột tối thiểu 200px
+       → Responsive tự động, không cần media query
+    ============================================================ */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .stat-card {
+      background: var(--bg-800);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      position: relative;
+      overflow: hidden; /* Clip pseudo-element */
+      transition: var(--transition);
+      cursor: default;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-2px); /* Nổi lên khi hover */
+    }
+
+    /*
+      📚 HỌC: ::before pseudo-element
+      Tạo element giả trước nội dung — không cần thêm HTML
+      Thường dùng cho decoration, icon, overlay
+    */
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 80px; height: 80px;
+      border-radius: 0 var(--radius-lg) 0 80px;
+      opacity: 0.08;
+    }
+
+    /* Màu sắc theo nhóm máu */
+    .stat-card.ok::before   { background: var(--green); }
+    .stat-card.low::before  { background: var(--amber); }
+    .stat-card.empty::before{ background: var(--red-500); }
+
+    .blood-type-label {
+      font-family: 'Playfair Display', serif;
+      font-size: var(--text-xl);
+      font-weight: 600;
+      color: var(--text-100);
+    }
+
+    .blood-units {
+      font-size: var(--text-2xl);
+      font-weight: 600;
+      margin: var(--space-2) 0 var(--space-1);
+      line-height: 1;
+    }
+
+    .blood-units.ok    { color: var(--green); }
+    .blood-units.low   { color: var(--amber); }
+    .blood-units.empty { color: var(--red-400); }
+
+    .blood-status {
+      font-size: var(--text-xs);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .blood-status.ok    { color: var(--green); }
+    .blood-status.low   { color: var(--amber); }
+    .blood-status.empty { color: var(--red-400); }
+
+    /* ============================================================
+       PHẦN 8: TABLE — Bảng danh sách donors
+       ============================================================
+       📚 HỌC: Table styling
+       - border-collapse: collapse → gộp borders lại
+       - thead có nền khác body để phân biệt header
+       - tr:hover highlight hàng đang focus
+    ============================================================ */
+    .table-wrapper {
+      overflow-x: auto; /* Cuộn ngang trên mobile nếu bảng rộng */
+      border-radius: var(--radius-md);
+      border: var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--bg-600);
+    }
+
+    th {
+      padding: var(--space-3) var(--space-4);
+      text-align: left;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-300);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: var(--space-4);
+      font-size: var(--text-sm);
+      color: var(--text-100);
+      border-top: var(--border);
+      vertical-align: middle;
+    }
+
+    tbody tr {
+      transition: var(--transition);
+    }
+
+    tbody tr:hover {
+      background: var(--bg-700);
+    }
+
+    /* Badge nhóm máu trong table */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      background: rgba(192, 57, 43, 0.2);
+      color: var(--red-400);
+      border: 1px solid rgba(192, 57, 43, 0.35);
+    }
+
+    /* Badge trạng thái */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 500;
+    }
+    .status-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-badge.active  { background: var(--green-bg);  color: var(--green);  }
+    .status-badge.active::before  { background: var(--green);  }
+    .status-badge.warning { background: var(--amber-bg); color: var(--amber); }
+
+    /* ============================================================
+       PHẦN 9: FORMS
+       ============================================================
+       📚 HỌC: Form styling
+       - Đặt label + input vào cùng 1 .form-group
+       - focus-within highlight cả group khi input được focus
+    ============================================================ */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-5);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1; /* Trải rộng hết columns */
+    }
+
+    label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--text-300);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    label .required {
+      color: var(--red-400);
+      margin-left: 2px;
+    }
+
+    /*
+      📚 HỌC: Input styling
+      appearance: none → xóa style mặc định của browser
+      Sau đó tự style lại hoàn toàn
+    */
+    input, select, textarea {
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-600);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-md);
+      color: var(--text-100);
+      font-size: var(--text-sm);
+      font-family: 'DM Sans', sans-serif;
+      transition: var(--transition);
+      appearance: none;
+      outline: none;
+    }
+
+    /*
+      📚 HỌC: :focus pseudo-class
+      Áp dụng khi user click vào input
+      box-shadow tạo hiệu ứng "glow" đẹp hơn outline mặc định
+    */
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--red-600);
+      box-shadow: 0 0 0 3px var(--red-glow);
+      background: var(--bg-700);
+    }
+
+    input::placeholder { color: var(--text-500); }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238892aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    select option { background: var(--bg-800); }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* ============================================================
+       PHẦN 10: BUTTONS
+       ============================================================
+       📚 HỌC: Button variants
+       Dùng class modifier: .btn + .btn-primary / .btn-ghost / v.v.
+       Tất cả button dùng chung .btn, chỉ thêm class màu khác nhau
+    ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    /* :active = đang được nhấn */
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--red-600);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--red-500); box-shadow: var(--shadow-red); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-300);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-ghost:hover { background: var(--bg-600); color: var(--text-100); }
+
+    .btn-danger {
+      background: rgba(231, 76, 60, 0.15);
+      color: var(--red-400);
+      border: 1px solid rgba(231, 76, 60, 0.25);
+    }
+    .btn-danger:hover { background: rgba(231, 76, 60, 0.25); }
+
+    .btn-sm { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
+    .btn-full { width: 100%; }
+
+    /* ============================================================
+       PHẦN 11: TOAST NOTIFICATIONS
+       ============================================================
+       📚 HỌC: Toast pattern
+       Thông báo nhỏ xuất hiện góc màn hình, tự biến mất
+       Dùng position: fixed để đè lên nội dung khác
+    ============================================================ */
+    .toast-container {
+      position: fixed;
+      bottom: var(--space-6);
+      right: var(--space-6);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      pointer-events: none; /* Click xuyên qua */
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      box-shadow: var(--shadow);
+      pointer-events: all;
+      max-width: 360px;
+
+      /* Animation: trượt vào từ phải */
+      animation: slideIn 0.3s ease forwards;
+    }
+
+    .toast.removing { animation: slideOut 0.3s ease forwards; }
+
+    .toast-success {
+      background: var(--green-bg);
+      border: 1px solid rgba(39, 174, 96, 0.3);
+      color: var(--green);
+    }
+
+    .toast-error {
+      background: rgba(192, 57, 43, 0.15);
+      border: 1px solid rgba(192, 57, 43, 0.3);
+      color: var(--red-400);
+    }
+
+    /* ============================================================
+       PHẦN 12: AUTH PAGES (Login / Register)
+    ============================================================ */
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-6);
+      display: none;
+    }
+    .auth-page.active { display: flex; }
+
+    .auth-card {
+      background: var(--bg-800);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-10);
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow);
+
+      /* Animation khi load */
+      animation: fadeUp 0.4s ease forwards;
+    }
+
+    .auth-logo {
+      text-align: center;
+      margin-bottom: var(--space-8);
+    }
+
+    .auth-icon {
+      width: 56px; height: 56px;
+      background: var(--red-600);
+      border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin: 0 auto var(--space-4);
+      box-shadow: var(--shadow-red);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    .auth-title {
+      font-family: 'Playfair Display', serif;
+      font-size: var(--text-xl);
+      color: var(--text-100);
+    }
+
+    .auth-subtitle {
+      font-size: var(--text-sm);
+      color: var(--text-300);
+      margin-top: var(--space-1);
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: var(--space-6);
+      font-size: var(--text-sm);
+      color: var(--text-300);
+    }
+
+    .auth-footer a {
+      color: var(--red-400);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    /* ============================================================
+       PHẦN 13: DIVIDER với label
+    ============================================================ */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin: var(--space-5) 0;
+      color: var(--text-500);
+      font-size: var(--text-xs);
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    /* ============================================================
+       PHẦN 14: LOADING SKELETON
+       ============================================================
+       📚 HỌC: Skeleton loading
+       Thay vì spinner, hiện "bộ khung" giống nội dung thật
+       Trải nghiệm tốt hơn — user biết layout trước khi data về
+    ============================================================ */
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        var(--bg-600) 25%,
+        var(--bg-500) 50%,
+        var(--bg-600) 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ============================================================
+       PHẦN 15: RESPONSIVE
+       ============================================================
+       📚 HỌC: Media Queries
+       @media (max-width: Xpx) → áp dụng khi màn hình ≤ X px
+       Mobile-first: viết style mobile trước, desktop sau (@min-width)
+       Desktop-first: viết style desktop trước, mobile sau (@max-width)
+    ============================================================ */
+    @media (max-width: 768px) {
+      .app-shell {
+        grid-template-columns: 1fr; /* 1 cột trên mobile */
+      }
+
+      .sidebar {
+        display: none; /* Ẩn sidebar trên mobile (cần thêm hamburger menu) */
+      }
+
+      .main-content {
+        padding: var(--space-4);
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 cột trên mobile */
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr; /* 1 cột trên mobile */
+      }
+    }
+
+    /* ============================================================
+       PHẦN 16: KEYFRAME ANIMATIONS
+       ============================================================
+       📚 HỌC: @keyframes
+       Định nghĩa animation từng bước (0% → 100%)
+       Sau đó dùng: animation: tên-animation duration timing-function
+    ============================================================ */
+
+    /* Nhịp đập logo */
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px var(--red-glow); }
+      50%       { box-shadow: 0 0 40px rgba(192,57,43,0.5), 0 0 60px var(--red-glow); }
+    }
+
+    /* Trượt vào từ dưới + fade in */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Toast trượt vào từ phải */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Toast trượt ra */
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(100%); }
+    }
+
+    /* Skeleton shimmer effect */
+    @keyframes shimmer {
+      from { background-position: 200% 0; }
+      to   { background-position: -200% 0; }
+    }
+
+    /* ============================================================
+       PHẦN 17: UTILITY CLASSES
+       ============================================================
+       📚 HỌC: Utility / Helper classes
+       Các class nhỏ dùng lại nhiều nơi
+       Giống Tailwind CSS nhưng tự viết
+    ============================================================ */
+    .flex          { display: flex; }
+    .flex-col      { flex-direction: column; }
+    .items-center  { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-2         { gap: var(--space-2); }
+    .gap-4         { gap: var(--space-4); }
+    .gap-6         { gap: var(--space-6); }
+    .mt-4          { margin-top: var(--space-4); }
+    .mt-6          { margin-top: var(--space-6); }
+    .mb-4          { margin-bottom: var(--space-4); }
+    .mb-6          { margin-bottom: var(--space-6); }
+    .text-sm       { font-size: var(--text-sm); }
+    .text-muted    { color: var(--text-300); }
+    .text-center   { text-align: center; }
+    .w-full        { width: 100%; }
+    .hidden        { display: none !important; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: var(--space-10);
+      color: var(--text-300);
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: var(--space-4); opacity: 0.5; }
+    .empty-state-title { font-size: var(--text-lg); color: var(--text-100); margin-bottom: var(--space-2); }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+      flex-wrap: wrap;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+      width: auto;
+      min-width: 160px;
+    }
+
+    /* Info box */
+    .info-box {
+      background: var(--blue-bg);
+      border: 1px solid rgba(52, 152, 219, 0.2);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      font-size: var(--text-sm);
+      color: #74b9e8;
+      margin-bottom: var(--space-5);
+    }
+    .info-box strong { color: var(--blue); }
+
+    /* Code highlight nhỏ */
+    code {
+      background: var(--bg-600);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: var(--text-xs);
+      color: var(--red-400);
+      font-family: 'Courier New', monospace;
+    }

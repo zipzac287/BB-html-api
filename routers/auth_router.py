@@ -1,8 +1,6 @@
 # ==============================================================
 # FILE: routers/auth_router.py
-# MỤC ĐÍCH: Các API endpoint cho Đăng ký / Đăng nhập
 # ==============================================================
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -10,146 +8,126 @@ from database import get_db
 import models, schemas
 from auth import hash_password, verify_password, create_access_token, get_current_user
 
-# APIRouter = mini-app chứa nhóm các route liên quan
-# prefix="/auth" → tất cả route trong file này bắt đầu bằng /auth
-# tags=["Auth"] → nhóm hiển thị trong /docs
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["🔐 Authentication"])
 
 # ==============================================================
-# ROUTE 1: Đăng ký tài khoản
-# POST /auth/register
+# POST /auth/register — Đăng ký tài khoản
 # ==============================================================
+# 📚 HỌC: HTTP Status Codes
+# 200 OK           — thành công (mặc định)
+# 201 Created      — tạo mới thành công
+# 400 Bad Request  — client gửi data sai
+# 401 Unauthorized — chưa đăng nhập
+# 403 Forbidden    — đã đăng nhập nhưng không có quyền
+# 404 Not Found    — không tìm thấy resource
+# 422 Unprocessable Entity — validation error (Pydantic)
+# 500 Internal Server Error — lỗi server
 
-@router.post("/register", response_model=schemas.UserResponse, status_code=201)
+@router.post(
+    "/register",
+    response_model=schemas.UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Đăng ký tài khoản mới"
+)
 def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     """
-    Đăng ký tài khoản mới
+    Tạo tài khoản mới với username, email, password.
     
-    Client gửi lên (JSON body):
-    {
-        "username": "admin",
-        "email": "admin@bloodbank.com",
-        "password": "secret123"
-    }
-    
-    Server trả về: thông tin user (KHÔNG có password)
+    - **username**: 3-100 ký tự, chỉ chữ/số/./_ 
+    - **email**: format email hợp lệ
+    - **password**: tối thiểu 6 ký tự
     """
-    
-    # BƯỚC 1: Kiểm tra username đã tồn tại chưa
-    # db.query(Model) = "SELECT * FROM users"
-    # .filter() = "WHERE username = ?"
-    # .first() = lấy 1 kết quả đầu tiên (hoặc None)
-    existing_user = db.query(models.User).filter(
+
+    # Kiểm tra username đã tồn tại
+    # db.query(Model): SELECT * FROM users
+    # .filter(điều_kiện): WHERE username = ?
+    # .first(): LIMIT 1 (trả về None nếu không tìm thấy)
+    if db.query(models.User).filter(
         models.User.username == user_data.username
-    ).first()
-    
-    if existing_user:
-        # HTTPException = lỗi có HTTP status code
-        # 400 Bad Request = client gửi dữ liệu không hợp lệ
+    ).first():
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username đã được sử dụng"
         )
-    
-    # BƯỚC 2: Kiểm tra email đã tồn tại chưa
-    existing_email = db.query(models.User).filter(
+
+    # Kiểm tra email đã tồn tại
+    if db.query(models.User).filter(
         models.User.email == user_data.email
-    ).first()
-    
-    if existing_email:
-        raise HTTPException(status_code=400, detail="Email đã được sử dụng")
-    
-    # BƯỚC 3: Hash password trước khi lưu
-    # KHÔNG BAO GIỜ lưu plain text password!
+    ).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email đã được sử dụng"
+        )
+
+    # Hash password trước khi lưu
     hashed_pw = hash_password(user_data.password)
-    
-    # BƯỚC 4: Tạo user object
-    # **user_data.dict() = unpack dict: username=..., email=...
+
+    # Tạo User object
+    # **user_data.model_dump() = unpack dict:
+    # username=..., email=... (không có password — field riêng)
     new_user = models.User(
         username=user_data.username,
         email=user_data.email,
         hashed_password=hashed_pw,
-        role="staff"  # Mặc định là staff, chỉ admin mới có thể đổi
     )
-    
-    # BƯỚC 5: Lưu vào database
-    db.add(new_user)    # Thêm vào session (chưa lưu thật)
-    db.commit()         # Commit → lưu vào file .db thật sự
-    db.refresh(new_user)  # Refresh để lấy id, created_at được server tạo
-    
+
+    # db.add(): thêm vào session (chưa commit)
+    db.add(new_user)
+    # db.commit(): ghi vào database thật sự
+    db.commit()
+    # db.refresh(): reload object từ DB (lấy id, created_at được gen)
+    db.refresh(new_user)
+
     return new_user
 
-# ==============================================================
-# ROUTE 2: Đăng nhập
 # POST /auth/login
-# ==============================================================
-
-@router.post("/login", response_model=schemas.TokenResponse)
+@router.post(
+    "/login",
+    response_model=schemas.TokenResponse,
+    summary="Đăng nhập → nhận JWT token"
+)
 def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
-    """
-    Đăng nhập → nhận JWT token
-    
-    Client gửi lên:
-    {
-        "username": "admin",
-        "password": "secret123"
-    }
-    
-    Server trả về:
-    {
-        "access_token": "eyJhbGc...",
-        "token_type": "bearer",
-        "user": { "id": 1, "username": "admin", ... }
-    }
-    """
-    
-    # BƯỚC 1: Tìm user theo username
+    """Đăng nhập bằng username + password, nhận JWT access token."""
+
+    # Tìm user
     user = db.query(models.User).filter(
         models.User.username == login_data.username
     ).first()
-    
-    # BƯỚC 2: Kiểm tra user tồn tại VÀ password đúng
-    # Lưu ý: không nói rõ "sai username" hay "sai password"
-    # → tránh kẻ xấu biết username có tồn tại hay không
+
+    # 📚 HỌC: Security best practice
+    # KHÔNG nói rõ "sai username" hay "sai password"
+    # → Kẻ tấn công không biết username có tồn tại không
     if not user or not verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Username hoặc password không đúng"
         )
-    
-    # BƯỚC 3: Kiểm tra tài khoản còn active không
+
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="Tài khoản đã bị khóa")
-    
-    # BƯỚC 4: Tạo JWT token
-    # "sub" (subject) = định danh chính trong token
-    token = create_access_token(data={
-        "sub": user.username,
-        "role": user.role
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tài khoản đã bị vô hiệu hóa"
+        )
+
+    # Tạo token với payload chứa username và role
+    token = create_access_token({
+        "sub": user.username,   # subject
+        "role": user.role,
+        "user_id": user.id
     })
-    
-    # BƯỚC 5: Trả về token + thông tin user
+
     return {
         "access_token": token,
         "token_type": "bearer",
         "user": user
     }
 
-# ==============================================================
-# ROUTE 3: Lấy thông tin user hiện tại (cần đăng nhập)
 # GET /auth/me
-# ==============================================================
-
-@router.get("/me", response_model=schemas.UserResponse)
+@router.get(
+    "/me",
+    response_model=schemas.UserResponse,
+    summary="Xem thông tin user đang đăng nhập"
+)
 def get_me(current_user: models.User = Depends(get_current_user)):
-    """
-    Lấy thông tin của user đang đăng nhập
-    
-    Client gửi: Authorization: Bearer <token> trong header
-    Server tự giải mã token và trả về thông tin user
-    
-    Route này dùng Depends(get_current_user):
-    → FastAPI tự động xác thực token trước khi chạy code này
-    → Nếu token sai/hết hạn → trả về 401 tự động
-    """
+    """Trả về thông tin user từ token. Dùng để verify token còn hợp lệ."""
     return current_user

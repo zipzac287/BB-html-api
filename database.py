@@ -1,76 +1,177 @@
 # ==============================================================
-# FILE: database.py
-# MỤC ĐÍCH: Kết nối Python với database SQLite
-# ĐỌC FILE NÀY TRƯỚC — đây là nền tảng của mọi thứ
+# FILE: database.py — Kết nối database
+# ==============================================================
+# 📚 HỌC: Tại sao cần file riêng cho database?
+#
+# Nếu viết db connection trong mỗi file:
+#   → Lặp code nhiều lần
+#   → Khó đổi database (SQLite → PostgreSQL)
+#   → Khó test (không mock được)
+#
+# Tách ra file riêng:
+#   → Import từ 1 nơi
+#   → Đổi DATABASE_URL là đổi được toàn bộ app
+#   → Dễ test bằng cách override get_db()
 # ==============================================================
 
-# SQLAlchemy là thư viện giúp Python "nói chuyện" với database
-# Thay vì viết SQL thuần, ta dùng Python objects — gọi là ORM
-# ORM = Object Relational Mapper
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ==============================================================
-# BƯỚC 1: Chỉ định loại database và vị trí file
+# DATABASE URL — "địa chỉ" kết nối database
 # ==============================================================
+# 📚 HỌC: Connection String Format
+#
+# SQLite (file local):
+#   sqlite:///./ten-file.db
+#   sqlite:///:memory:  (in-memory, mất khi restart — dùng test)
+#
+# PostgreSQL (production):
+#   postgresql://user:password@host:port/dbname
+#   Ví dụ: postgresql://admin:secret@localhost:5432/bloodbank
+#
+# MySQL:
+#   mysql+pymysql://user:password@host/dbname
+#
+# Trong production: ĐỌC từ environment variable, không hardcode!
+# import os
+# DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./bloodbank.db")
 
-# DATABASE_URL = địa chỉ kết nối database
-# Cú pháp: "loại_db:///đường_dẫn_file"
-# sqlite:///  → dùng SQLite (lưu vào file .db, không cần cài server)
-# ./bloodbank.db → file database nằm cùng thư mục với main.py
 DATABASE_URL = "sqlite:///./bloodbank.db"
 
 # ==============================================================
-# BƯỚC 2: Tạo Engine — "động cơ" kết nối với database
+# ENGINE — Đối tượng quản lý kết nối vật lý
 # ==============================================================
-
-# create_engine() = mở kết nối đến database
-# connect_args={"check_same_thread": False}
-#   → Chỉ cần cho SQLite: cho phép nhiều request dùng chung kết nối
+# 📚 HỌC: Engine là gì?
+#
+# Engine giống như "connection pool manager":
+#   - Quản lý nhiều kết nối đồng thời
+#   - Tái sử dụng kết nối thay vì tạo mới mỗi lần
+#   - Handle timeout, reconnect tự động
+#
+# Tạo engine MỘT LẦN khi app khởi động
+# Không tạo engine trong mỗi request (chậm + tốn tài nguyên)
+#
+# connect_args={"check_same_thread": False}:
+#   → CHỈ dùng cho SQLite
+#   → SQLite mặc định chỉ cho 1 thread dùng 1 connection
+#   → FastAPI dùng nhiều thread → cần tắt giới hạn này
 #   → PostgreSQL/MySQL không cần dòng này
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    connect_args={"check_same_thread": False},
+    # echo=True,  # Uncomment để in ra SQL query (debug)
 )
 
 # ==============================================================
-# BƯỚC 3: Tạo SessionLocal — "phiên làm việc" với database
+# ENABLE WAL MODE cho SQLite
 # ==============================================================
+# 📚 HỌC: WAL (Write-Ahead Logging)
+# Chế độ ghi của SQLite cho phép:
+#   - Đọc và viết đồng thời (không bị lock)
+#   - Hiệu năng tốt hơn trong môi trường concurrent
+# PostgreSQL không cần vì đã built-in
 
-# Session = một phiên làm việc với database
-# Giống như mở tab mới trong trình duyệt: mỗi request có 1 session riêng
-# autocommit=False → ta phải tự gọi db.commit() để lưu thay đổi
-# autoflush=False  → không tự động gửi SQL trước khi commit
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+@event.listens_for(engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA foreign_keys=ON")  # Enforce foreign key constraints
+    cursor.close()
 
 # ==============================================================
-# BƯỚC 4: Tạo Base — class cha cho tất cả các bảng
+# SESSION FACTORY
 # ==============================================================
+# 📚 HỌC: Session vs Connection
+#
+# Connection = kết nối vật lý TCP đến database
+# Session = đơn vị công việc (unit of work) với database
+#
+# Session tracks:
+#   - Objects đã load từ DB (identity map)
+#   - Thay đổi chưa commit
+#   - Transaction đang mở
+#
+# sessionmaker() tạo ra một "factory" (nhà máy)
+# Gọi SessionLocal() → tạo ra 1 Session mới
+#
+# autocommit=False → ta phải tự gọi session.commit()
+#   Nếu True: mỗi câu SQL tự commit ngay → khó rollback
+#
+# autoflush=False → không tự flush trước query
+#   Flush = gửi pending SQL đến DB (nhưng chưa commit)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
-# declarative_base() tạo ra 1 class "Base"
-# Tất cả các Model (bảng) sẽ kế thừa từ Base này
-# Base giúp SQLAlchemy biết: "đây là class đại diện cho bảng database"
+# ==============================================================
+# BASE MODEL
+# ==============================================================
+# 📚 HỌC: Declarative Base
+#
+# declarative_base() trả về class Base
+# Tất cả Model (bảng) PHẢI kế thừa từ Base
+#
+# Base lưu "registry" của tất cả models
+# → create_all() dùng registry này để biết cần tạo bảng nào
+#
+# Base.metadata = object chứa thông tin schema (bảng, cột, index)
 Base = declarative_base()
 
 # ==============================================================
-# BƯỚC 5: Tạo hàm get_db — cung cấp session cho mỗi API request
+# DEPENDENCY INJECTION — get_db()
 # ==============================================================
+# 📚 HỌC: Dependency Injection trong FastAPI
+#
+# FastAPI có system "Dependency Injection" mạnh mẽ:
+# Dùng Depends(get_db) trong route → FastAPI tự:
+#   1. Gọi get_db() trước khi route chạy
+#   2. Inject kết quả vào parameter của route
+#   3. Sau khi route xong → tiếp tục chạy phần sau yield
+#
+# FLOW:
+#   Request đến → FastAPI gọi get_db() → tạo session
+#       ↓
+#   yield db → route handler nhận db và xử lý
+#       ↓
+#   Route xong → finally chạy → db.close()
+#
+# TẠI SAO DÙNG yield THAY VÌ return?
+# yield tạo ra "generator" → code sau yield vẫn chạy được
+# return sẽ kết thúc hàm ngay → không cleanup được
+#
+# Nếu route throw exception:
+#   → FastAPI vẫn chạy phần finally → session vẫn được đóng
+#   → Không bị resource leak (session bị bỏ quên không đóng)
 
-# Đây là hàm "dependency" — FastAPI tự động gọi nó trước mỗi route
-# Mỗi request → mở 1 session mới → xử lý → đóng session
 def get_db():
-    db = SessionLocal()   # Mở session
+    """
+    Dependency: cung cấp database session cho mỗi request
+    
+    Sử dụng trong route:
+        from database import get_db
+        from fastapi import Depends
+        
+        @router.get("/items")
+        def get_items(db: Session = Depends(get_db)):
+            return db.query(Item).all()
+    """
+    db = SessionLocal()
+    logger.debug("Database session opened")
     try:
-        yield db          # "yield" = cho route mượn session này
-        # Code trong route chạy ở đây
+        yield db
+        # Code trong route handler chạy ở đây
+    except Exception as e:
+        # Nếu có lỗi → rollback mọi thay đổi chưa commit
+        db.rollback()
+        logger.error(f"Database error, rolling back: {e}")
+        raise  # Re-raise để FastAPI handle lỗi
     finally:
-        db.close()        # Dù thành công hay lỗi, vẫn đóng session
-
-# ==============================================================
-# TÓM TẮT LUỒNG:
-# engine → kết nối vật lý với file .db
-# SessionLocal → factory tạo ra các session
-# Base → class cha của tất cả Model/bảng
-# get_db() → FastAPI dùng để inject session vào mỗi route
-# ==============================================================
+        db.close()
+        logger.debug("Database session closed")

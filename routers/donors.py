@@ -1,168 +1,143 @@
+# routers/donors.py
 # ==============================================================
-# FILE: routers/donors.py
-# MỤC ĐÍCH: CRUD API cho Donors (người hiến máu)
-# CRUD = Create, Read, Update, Delete
+# 📚 HỌC: CRUD Pattern
+# Create  → POST   /donors/
+# Read    → GET    /donors/ và GET /donors/{id}
+# Update  → PUT    /donors/{id}
+# Delete  → DELETE /donors/{id}
 # ==============================================================
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from database import get_db
 import models, schemas
 from auth import get_current_user, require_admin
 
-router = APIRouter(prefix="/donors", tags=["Donors"])
+router = APIRouter(prefix="/donors", tags=["👥 Donors"])
 
-# ==============================================================
-# READ — Lấy danh sách donors
-# GET /donors/
-# ==============================================================
-
+# GET /donors/ — Lấy tất cả donors (có filter + search)
 @router.get("/", response_model=List[schemas.DonorResponse])
-def get_all_donors(
+def get_donors(
+    # 📚 HỌC: Query Parameters
+    # /donors/?blood_type=O%2B&city=HCM&skip=0&limit=50
+    # Query() cho phép set default, validate, description
+    blood_type: Optional[str] = Query(None, description="Lọc theo nhóm máu"),
+    city: Optional[str] = Query(None, description="Lọc theo thành phố"),
+    search: Optional[str] = Query(None, description="Tìm theo tên"),
+    skip: int = Query(0, ge=0, description="Bỏ qua N records đầu (pagination)"),
+    limit: int = Query(100, ge=1, le=500, description="Tối đa bao nhiêu records"),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)  # Phải đăng nhập
+    current_user: models.User = Depends(get_current_user)
 ):
     """
-    Lấy tất cả donors
+    Lấy danh sách donors với filter tùy chọn.
     
-    List[schemas.DonorResponse] = trả về mảng (danh sách) DonorResponse
-    
-    SQL tương đương: SELECT * FROM donors;
+    📚 HỌC: SQLAlchemy Query Building
+    Xây query dần dần bằng cách chain .filter()
+    Không execute SQL cho đến khi gọi .all() hoặc .first()
     """
-    donors = db.query(models.Donor).all()
+    # Bắt đầu với query tất cả donors
+    # SQL: SELECT * FROM donors
+    query = db.query(models.Donor)
+
+    # Thêm filter theo blood_type nếu có
+    # SQL: WHERE blood_type = ?
+    if blood_type:
+        query = query.filter(models.Donor.blood_type == blood_type.upper())
+
+    # Thêm filter theo city
+    if city:
+        # ilike = LIKE không phân biệt hoa thường
+        # SQL: WHERE city LIKE '%hcm%'
+        query = query.filter(models.Donor.city.ilike(f"%{city}%"))
+
+    # Tìm kiếm theo tên
+    if search:
+        query = query.filter(models.Donor.name.ilike(f"%{search}%"))
+
+    # Pagination
+    # SQL: ORDER BY id DESC LIMIT ? OFFSET ?
+    donors = (query
+              .order_by(models.Donor.created_at.desc())
+              .offset(skip)   # Bỏ qua N records
+              .limit(limit)   # Lấy tối đa N records
+              .all())         # Execute query!
+
     return donors
 
-# ==============================================================
-# READ — Tìm donor theo nhóm máu
-# GET /donors/search?blood_type=O%2B
-# ==============================================================
-
-@router.get("/search", response_model=List[schemas.DonorResponse])
-def search_donors(
-    blood_type: str,               # Query parameter: /donors/search?blood_type=O+
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    """
-    Tìm donor theo nhóm máu
-    
-    SQL tương đương: SELECT * FROM donors WHERE blood_type = 'O+';
-    """
-    donors = db.query(models.Donor).filter(
-        models.Donor.blood_type == blood_type
-    ).all()
-    
-    return donors  # Trả về mảng rỗng [] nếu không tìm thấy
-
-# ==============================================================
-# READ — Lấy 1 donor theo ID
-# GET /donors/{donor_id}
-# ==============================================================
-
+# GET /donors/{donor_id} — Lấy 1 donor theo ID
 @router.get("/{donor_id}", response_model=schemas.DonorResponse)
 def get_donor(
-    donor_id: int,   # Path parameter: /donors/5
+    donor_id: int,  # Path parameter: /donors/5
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    _: models.User = Depends(get_current_user)
 ):
-    """
-    SQL tương đương: SELECT * FROM donors WHERE id = 5 LIMIT 1;
-    """
+    # 📚 HỌC: .first() vs .one()
+    # .first() → trả về None nếu không tìm thấy
+    # .one()   → raise exception nếu không tìm thấy hoặc có nhiều hơn 1
     donor = db.query(models.Donor).filter(models.Donor.id == donor_id).first()
-    
+
     if not donor:
-        raise HTTPException(status_code=404, detail="Không tìm thấy donor")
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy donor ID {donor_id}"
+        )
     return donor
 
-# ==============================================================
-# CREATE — Thêm donor mới
-# POST /donors/
-# ==============================================================
-
+# POST /donors/ — Tạo donor mới
 @router.post("/", response_model=schemas.DonorResponse, status_code=201)
 def create_donor(
-    donor_data: schemas.DonorCreate,  # Request body (JSON)
+    donor_data: schemas.DonorCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """
-    Tạo donor mới
-    
-    SQL tương đương:
-    INSERT INTO donors (name, blood_type, phone, city, created_by)
-    VALUES ('Nguyễn Văn A', 'O+', '0901234567', 'HCM', 1);
-    """
-    # model_dump() = chuyển Pydantic schema → dict
-    # (trong Pydantic v1 dùng .dict(), v2 dùng .model_dump())
+    # model_dump(): Pydantic model → Python dict
+    # {"name": "...", "blood_type": "...", ...}
     new_donor = models.Donor(
         **donor_data.model_dump(),
-        created_by=current_user.id  # Ghi nhận ai tạo donor này
+        created_by=current_user.id
     )
-    
     db.add(new_donor)
     db.commit()
     db.refresh(new_donor)
     return new_donor
 
-# ==============================================================
-# UPDATE — Cập nhật thông tin donor
-# PUT /donors/{donor_id}
-# ==============================================================
-
+# PUT /donors/{id} — Cập nhật donor
 @router.put("/{donor_id}", response_model=schemas.DonorResponse)
 def update_donor(
     donor_id: int,
     donor_data: schemas.DonorCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    _: models.User = Depends(get_current_user)
 ):
-    """
-    Cập nhật donor
-    
-    SQL tương đương:
-    UPDATE donors SET name='...', blood_type='...' WHERE id = 5;
-    """
     donor = db.query(models.Donor).filter(models.Donor.id == donor_id).first()
-    
     if not donor:
         raise HTTPException(status_code=404, detail="Không tìm thấy donor")
-    
+
     # Cập nhật từng field
+    # model_dump(exclude_unset=True): chỉ lấy field được gửi lên
     for field, value in donor_data.model_dump().items():
-        setattr(donor, field, value)  # donor.name = value, v.v.
-    
+        setattr(donor, field, value)  # donor.name = value
+
     db.commit()
     db.refresh(donor)
     return donor
 
-# ==============================================================
-# DELETE — Xóa donor
-# DELETE /donors/{donor_id}
-# ==============================================================
-
+# DELETE /donors/{id} — Xóa donor (chỉ admin)
 @router.delete("/{donor_id}", response_model=schemas.MessageResponse)
 def delete_donor(
     donor_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(require_admin)  # Chỉ ADMIN mới xóa được!
+    _: models.User = Depends(require_admin)  # Chỉ admin!
 ):
-    """
-    Xóa donor (chỉ admin)
-    
-    SQL tương đương: DELETE FROM donors WHERE id = 5;
-    
-    Lưu ý: dùng Depends(require_admin) thay vì get_current_user
-    → FastAPI tự kiểm tra role trước khi chạy code
-    """
     donor = db.query(models.Donor).filter(models.Donor.id == donor_id).first()
-    
     if not donor:
         raise HTTPException(status_code=404, detail="Không tìm thấy donor")
-    
+
+    name = donor.name
     db.delete(donor)
     db.commit()
-    
-    return {"message": f"Đã xóa donor ID {donor_id}"}
+
+    return {"message": f"Đã xóa donor '{name}' (ID: {donor_id})"}

@@ -1,136 +1,206 @@
 # ==============================================================
-# FILE: auth.py
-# MỤC ĐÍCH: Xử lý toàn bộ logic Authentication
-# Gồm: hash password, tạo JWT token, xác thực token
+# FILE: auth.py — Toàn bộ logic Authentication
+# ==============================================================
+# 📚 HỌC: Authentication vs Authorization
 #
-# ĐỌC KỸ FILE NÀY — Authentication là trái tim của bảo mật app
+# Authentication (Xác thực) = "Bạn là ai?"
+#   → Đăng nhập bằng username/password
+#   → Nhận token
+#
+# Authorization (Phân quyền) = "Bạn được làm gì?"
+#   → Token nói bạn là "staff" → không được xóa donor
+#   → Token nói bạn là "admin" → được xóa
+#
+# FILE NÀY XỬ LÝ:
+#   1. Hash password (bcrypt)
+#   2. Tạo JWT token khi đăng nhập
+#   3. Giải mã JWT token từ mỗi request
+#   4. Dependency functions bảo vệ route
 # ==============================================================
 
-# passlib: thư viện hash password (bcrypt là thuật toán mạnh nhất)
 from passlib.context import CryptContext
-
-# jose: thư viện tạo và giải mã JWT token
 from jose import JWTError, jwt
-
-# datetime để set thời hạn token
-from datetime import datetime, timedelta
-
-# FastAPI tools cho authentication
+from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
 from sqlalchemy.orm import Session
+import logging
+
 from database import get_db
 import models
 
-# ==============================================================
-# PHẦN 1: CẤU HÌNH BẢO MẬT
-# ==============================================================
-
-# SECRET_KEY: chìa khóa bí mật để ký JWT token
-# QUAN TRỌNG: Trong production, đặt giá trị này vào .env file!
-# Không bao giờ hardcode trong code thật!
-SECRET_KEY = "blood-bank-secret-key-change-in-production-2024"
-
-# Thuật toán mã hóa JWT — HS256 là phổ biến nhất
-ALGORITHM = "HS256"
-
-# Token có hiệu lực bao lâu (tính bằng phút)
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 tiếng
+logger = logging.getLogger(__name__)
 
 # ==============================================================
-# PHẦN 2: HASH PASSWORD
+# CẤU HÌNH BẢO MẬT
 # ==============================================================
 
-# CryptContext: thiết lập context để hash/verify password
-# schemes=["bcrypt"] → dùng bcrypt (không thể reverse, rất an toàn)
-# deprecated="auto" → tự động nâng cấp hash cũ
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 📚 HỌC: SECRET_KEY là gì?
+#
+# JWT token được "ký" bằng secret key:
+#   token = header.payload.SIGNATURE
+#   SIGNATURE = HMAC(header + payload, SECRET_KEY)
+#
+# Ai có SECRET_KEY mới có thể tạo/xác thực token hợp lệ
+# → KHÔNG BAO GIỜ chia sẻ secret key
+# → Production: lưu trong environment variable
+#   SECRET_KEY = os.getenv("SECRET_KEY")
+#   Tạo key mạnh: python -c "import secrets; print(secrets.token_hex(32))"
+
+SECRET_KEY = "blood-bank-dev-key-CHANGE-IN-PRODUCTION-use-env-var"
+ALGORITHM = "HS256"  # HMAC + SHA-256 — phổ biến nhất
+ACCESS_TOKEN_EXPIRE_HOURS = 8  # Token hết hạn sau 8 tiếng
+
+# ==============================================================
+# PASSWORD HASHING — Bcrypt
+# ==============================================================
+# 📚 HỌC: Tại sao phải hash password?
+#
+# Kịch bản: Database bị hack
+# - Nếu lưu plain text: "mypassword123" → hacker đọc được ngay
+# - Nếu lưu hash bcrypt: "$2b$12$EixZ..." → không thể reverse
+#
+# Bcrypt đặc điểm:
+#   1. One-way: không thể từ hash → password gốc
+#   2. Salted: cùng password nhưng hash ra khác nhau mỗi lần
+#      hash("abc") = "$2b$12$X..." (lần 1)
+#      hash("abc") = "$2b$12$Y..." (lần 2) — khác!
+#      → Chống rainbow table attack
+#   3. Slow (chủ ý): 12 rounds mặc định
+#      → Brute force cần hàng năm thay vì giây
+
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__rounds=12  # Higher = slower = more secure
+)
 
 def hash_password(plain_password: str) -> str:
     """
-    Chuyển password thường → password đã hash
+    Chuyển "mypassword" → "$2b$12$abc..." (không thể reverse)
     
-    Ví dụ:
-      hash_password("mypassword123")
-      → "$2b$12$EixZaYVK1fsbw1ZfbX3OXe..." (không thể đọc ngược lại)
-    
-    TẠI SAO HASH?
-      Nếu database bị hack, hacker chỉ thấy hash, không thấy password thật.
-      bcrypt hash ra chuỗi khác nhau mỗi lần dù cùng input (do "salt" ngẫu nhiên).
+    Luôn dùng hàm này — không tự hash bằng md5/sha1 (không đủ an toàn)
     """
     return pwd_context.hash(plain_password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Kiểm tra password nhập vào có khớp với hash trong database không
+    Kiểm tra password nhập vào có khớp với hash không
     
-    Ví dụ:
-      verify_password("mypassword123", "$2b$12$EixZaYVK1fsbw1ZfbX3OXe...")
-      → True (đúng password)
-      
-      verify_password("wrongpassword", "$2b$12$EixZaYVK1fsbw1ZfbX3OXe...")
-      → False (sai password)
+    Bcrypt tự extract salt từ hash string rồi hash lại để so sánh
+    → Không cần lưu salt riêng
+    
+    Returns:
+        True  → đúng password
+        False → sai password
     """
     return pwd_context.verify(plain_password, hashed_password)
 
 # ==============================================================
-# PHẦN 3: JWT TOKEN
+# JWT TOKEN
 # ==============================================================
-
-# JWT = JSON Web Token
-# Cấu trúc: header.payload.signature (3 phần ngăn cách bởi dấu chấm)
-# Ví dụ: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.abc123
+# 📚 HỌC: JWT (JSON Web Token) là gì?
 #
-# LUỒNG JWT:
-# 1. User đăng nhập → server tạo JWT → gửi cho client
-# 2. Client lưu JWT (localStorage hoặc memory)
-# 3. Mỗi request, client gửi JWT trong header: "Authorization: Bearer <token>"
-# 4. Server giải mã JWT → biết user là ai → xử lý request
+# JWT = chuỗi 3 phần ngăn cách bởi dấu chấm:
+#   eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.abc123
+#   |______header______|.|___payload_________|.|_sig_|
+#
+# 1. HEADER (base64): thuật toán ký
+#    {"alg": "HS256", "typ": "JWT"}
+#
+# 2. PAYLOAD (base64): thông tin user (KHÔNG mã hóa! Chỉ encode)
+#    {"sub": "admin", "role": "admin", "exp": 1735689600}
+#    → Bất kỳ ai cũng có thể đọc payload (decode base64)
+#    → KHÔNG lưu thông tin nhạy cảm trong payload!
+#
+# 3. SIGNATURE (HMAC):
+#    HMAC-SHA256(header + "." + payload, SECRET_KEY)
+#    → Chỉ ai có SECRET_KEY mới tạo được signature hợp lệ
+#    → Server verify: tính lại signature → so sánh
+#
+# LUỒNG:
+#   Login → Server tạo JWT → Client lưu JWT
+#   Request API → Client gửi JWT trong header
+#   Server verify JWT → cho phép hoặc từ chối
 
 def create_access_token(data: dict) -> str:
     """
-    Tạo JWT token từ dữ liệu user
+    Tạo JWT token từ payload data
     
-    data: thông tin cần lưu trong token, ví dụ: {"sub": "admin", "role": "admin"}
-    "sub" = subject = định danh chính (thường là username)
+    Args:
+        data: dict thông tin user, vd: {"sub": "admin", "role": "admin"}
+              "sub" = subject = định danh chính (username)
+    
+    Returns:
+        JWT token string
     """
-    # Sao chép data để không sửa dict gốc
-    to_encode = data.copy()
-    
-    # Thêm thời gian hết hạn vào payload
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    
-    # jwt.encode() = mã hóa payload thành token string
-    # SECRET_KEY + ALGORITHM → chỉ server biết cách giải mã
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    payload = data.copy()
+
+    # Thêm expiration time
+    # timezone.utc: dùng UTC (không bị ảnh hưởng timezone server)
+    expire = datetime.now(timezone.utc) + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
+    payload["exp"] = expire
+
+    # Thêm issued-at time
+    payload["iat"] = datetime.now(timezone.utc)
+
+    # Ký token bằng SECRET_KEY
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    logger.info(f"Token created for user: {data.get('sub')}")
+    return token
 
 def decode_token(token: str) -> dict:
     """
-    Giải mã JWT token → lấy lại thông tin user
-    Ném lỗi nếu token invalid hoặc hết hạn
+    Giải mã và verify JWT token
+    
+    Kiểm tra:
+    1. Signature hợp lệ (không bị giả mạo/sửa)
+    2. Token chưa hết hạn
+    
+    Raises:
+        HTTPException 401: token invalid hoặc expired
     """
     try:
-        # jwt.decode() kiểm tra: chữ ký hợp lệ? Token hết hạn chưa?
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError:
-        # JWTError xảy ra khi: token giả mạo, bị sửa, hoặc hết hạn
+    except JWTError as e:
+        logger.warning(f"Invalid token: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token không hợp lệ hoặc đã hết hạn",
+            detail="Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.",
+            # WWW-Authenticate header: theo chuẩn OAuth2
             headers={"WWW-Authenticate": "Bearer"},
         )
 
 # ==============================================================
-# PHẦN 4: DEPENDENCY — bảo vệ các API route
+# DEPENDENCIES — Bảo vệ route
 # ==============================================================
+# 📚 HỌC: FastAPI Dependency Injection
+#
+# Dependency = hàm chạy trước route handler
+# FastAPI tự gọi dependency và inject kết quả
+#
+# VÍ DỤ:
+#   @router.get("/protected")
+#   def protected(user = Depends(get_current_user)):
+#       return {"hello": user.username}
+#
+#   → Mỗi request đến /protected:
+#     1. FastAPI gọi get_current_user()
+#     2. get_current_user đọc + verify token
+#     3. Nếu valid → inject user object vào route
+#     4. Nếu invalid → trả 401 ngay, route không chạy
+#
+# CHAIN DEPENDENCY:
+#   require_admin depends on get_current_user
+#   get_current_user depends on bearer_scheme và get_db
+#   → FastAPI tự resolve chain
 
-# HTTPBearer: FastAPI tool đọc token từ header
-# "Authorization: Bearer eyJhbGc..."
-bearer_scheme = HTTPBearer()
+# HTTPBearer: đọc token từ "Authorization: Bearer <token>" header
+bearer_scheme = HTTPBearer(
+    scheme_name="JWT Bearer Token",
+    description="Dán JWT token nhận được từ /auth/login"
+)
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
@@ -139,65 +209,67 @@ def get_current_user(
     """
     Dependency: xác thực user từ JWT token
     
-    Dùng trong route như sau:
-        @router.get("/protected")
-        def protected_route(user = Depends(get_current_user)):
-            return {"message": f"Xin chào {user.username}"}
-    
-    Nếu token thiếu hoặc sai → FastAPI tự trả về 401 Unauthorized
+    Trả về User object nếu token hợp lệ
+    Raises 401 nếu token thiếu/sai/hết hạn
     """
-    # Lấy token string từ header
-    token = credentials.credentials
-    
-    # Giải mã token → lấy payload
+    token = credentials.credentials  # Lấy token string từ header
+
+    # Giải mã token → payload dict
     payload = decode_token(token)
-    
-    # Lấy username từ payload ("sub" = subject)
+
+    # Lấy username từ payload
     username: str = payload.get("sub")
-    if username is None:
-        raise HTTPException(status_code=401, detail="Token không có thông tin user")
-    
+    if not username:
+        raise HTTPException(
+            status_code=401,
+            detail="Token không chứa thông tin user"
+        )
+
     # Tìm user trong database
-    user = db.query(models.User).filter(models.User.username == username).first()
-    if user is None:
+    # Mỗi request đều query DB để đảm bảo user vẫn tồn tại/active
+    # (Nếu account bị khóa, token cũ vẫn không dùng được)
+    user = db.query(models.User).filter(
+        models.User.username == username
+    ).first()
+
+    if not user:
         raise HTTPException(status_code=401, detail="User không tồn tại")
-    
+
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="Tài khoản đã bị khóa")
-    
+        raise HTTPException(status_code=403, detail="Tài khoản đã bị vô hiệu hóa")
+
     return user
 
-def require_admin(current_user: models.User = Depends(get_current_user)) -> models.User:
+def get_current_user_optional(
+    db: Session = Depends(get_db),
+    authorization: str = None
+) -> Optional[models.User]:
     """
-    Dependency: yêu cầu user phải là admin
+    Dependency: token optional (không bắt buộc đăng nhập)
+    Dùng cho endpoint public nhưng có thêm tính năng khi đăng nhập
+    """
+    pass  # Implement nếu cần
+
+def require_admin(
+    current_user: models.User = Depends(get_current_user)
+) -> models.User:
+    """
+    Dependency: chỉ cho phép admin
     
-    Dùng cho các route chỉ admin mới được phép:
-        @router.delete("/users/{id}")
-        def delete_user(user = Depends(require_admin)):
-            ...
+    Phải đăng nhập (get_current_user) VÀ phải có role="admin"
+    
+    📚 HỌC: Dependency chain
+    require_admin → get_current_user → bearer_scheme + get_db
+    FastAPI tự resolve từ trong ra ngoài
     """
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Chỉ admin mới có quyền thực hiện thao tác này"
+            detail="Bạn không có quyền thực hiện thao tác này. Yêu cầu quyền Admin."
         )
     return current_user
 
-# ==============================================================
-# TÓM TẮT LUỒNG AUTHENTICATION:
-#
-# ĐĂNG KÝ:
-#   password thuần → hash_password() → lưu hashed vào DB
-#
-# ĐĂNG NHẬP:
-#   nhập password → verify_password(nhập, hash_từ_DB)
-#   → nếu đúng → create_access_token({"sub": username})
-#   → trả token về cho client
-#
-# GỌI API CÓ BẢO VỆ:
-#   client gửi: Authorization: Bearer <token>
-#   → get_current_user() đọc token
-#   → decode_token() giải mã
-#   → tìm user trong DB
-#   → route handler nhận được user object
-# ==============================================================
+# Type alias cho gọn (tùy chọn)
+from typing import Annotated, Optional
+CurrentUser = Annotated[models.User, Depends(get_current_user)]
+AdminUser = Annotated[models.User, Depends(require_admin)]

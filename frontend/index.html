@@ -1,702 +1,927 @@
 <!DOCTYPE html>
+<!--
+  ================================================================
+  BLOOD BANK APP — Frontend hoàn chỉnh
+  ================================================================
+  FILE NÀY DẠY BẠN:
+    1. Cách tổ chức HTML semantic
+    2. CSS Variables, Flexbox, Grid
+    3. CSS Animations & Transitions
+    4. JavaScript: fetch API, async/await, DOM manipulation
+    5. SPA pattern (Single Page App) không cần framework
+  ================================================================
+  CÁCH ĐỌC FILE NÀY:
+    - Đọc từ trên xuống
+    - Mỗi section có comment giải thích
+    - Tìm "📚 HỌC:" để hiểu khái niệm quan trọng
+  ================================================================
+-->
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
+  <!--
+    📚 HỌC: viewport meta tag
+    Bắt buộc cho responsive design (web hiển thị đúng trên mobile)
+    width=device-width  → chiều rộng = chiều rộng màn hình thật
+    initial-scale=1.0   → không zoom tự động
+  -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🩸 Blood Bank</title>
-  <style>
-    /* ============================================================
-       PHẦN CSS — Giao diện
-    ============================================================ */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+  <title>🩸 Blood Bank Management</title>
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-    }
+  <!--
+    📚 HỌC: Google Fonts
+    Import font từ internet — miễn phí, không cần cài đặt
+    "DM Sans"    → font hiện đại, dễ đọc cho body text
+    "Playfair Display" → font serif đẹp cho heading
+    display=swap → hiện font hệ thống trước khi font tải xong (tránh flash)
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 
-    /* --- Navbar --- */
-    nav {
-      background: #c0392b;
-      color: white;
-      padding: 14px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    nav h1 { font-size: 1.2rem; }
-    #nav-user { font-size: 0.9rem; }
-    #btn-logout {
-      background: rgba(255,255,255,0.2);
-      border: 1px solid white;
-      color: white;
-      padding: 6px 14px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-left: 12px;
-    }
-
-    /* --- Layout chính --- */
-    .container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
-
-    /* --- Pages (mỗi "page" là 1 div, ẩn/hiện bằng JS) --- */
-    .page { display: none; }
-    .page.active { display: block; }
-
-    /* --- Card --- */
-    .card {
-      background: white;
-      border-radius: 8px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
-    }
-    .card h2 { margin-bottom: 16px; color: #c0392b; }
-
-    /* --- Form --- */
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 0.9rem; }
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-    /* --- Buttons --- */
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: bold;
-    }
-    .btn-primary { background: #c0392b; color: white; }
-    .btn-secondary { background: #7f8c8d; color: white; }
-    .btn-small { padding: 5px 12px; font-size: 0.85rem; }
-    .btn-danger { background: #e74c3c; color: white; }
-    .btn:hover { opacity: 0.85; }
-
-    /* --- Alert / Thông báo --- */
-    .alert {
-      padding: 12px;
-      border-radius: 4px;
-      margin-bottom: 14px;
-      display: none;
-    }
-    .alert.show { display: block; }
-    .alert-error { background: #fde8e8; color: #c0392b; border: 1px solid #e74c3c; }
-    .alert-success { background: #e8f8f0; color: #27ae60; border: 1px solid #2ecc71; }
-
-    /* --- Tabs --- */
-    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
-    .tab-btn {
-      padding: 10px 20px;
-      border: 2px solid #ddd;
-      background: white;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 0.9rem;
-    }
-    .tab-btn.active { border-color: #c0392b; color: #c0392b; font-weight: bold; }
-
-    /* --- Table --- */
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-    th { background: #f9f9f9; font-weight: bold; color: #555; font-size: 0.85rem; }
-    tr:hover { background: #fafafa; }
-
-    /* --- Badge nhóm máu --- */
-    .badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: bold;
-      background: #c0392b;
-      color: white;
-    }
-
-    /* --- Blood stock grid --- */
-    .stock-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-    .stock-card {
-      background: white;
-      border: 2px solid #eee;
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-    }
-    .stock-card .blood-type { font-size: 1.5rem; font-weight: bold; color: #c0392b; }
-    .stock-card .units { font-size: 2rem; font-weight: bold; margin: 8px 0; }
-    .stock-card .label { font-size: 0.75rem; color: #888; }
-    .stock-card.low { border-color: #e74c3c; background: #fde8e8; }
-    .stock-card.ok { border-color: #27ae60; }
-
-    /* --- Loading --- */
-    .loading { text-align: center; padding: 40px; color: #888; }
-  </style>
+  <link rel="stylesheet" href="index.css" />
 </head>
+
 <body>
 
-<!-- ============================================================
-     NAVBAR
-     Hiển thị tên user khi đăng nhập, nút logout
-============================================================ -->
-<nav>
-  <h1>🩸 Blood Bank</h1>
-  <div id="nav-user" style="display:none">
-    <span id="nav-username"></span>
-    <button class="btn" id="btn-logout" onclick="logout()">Đăng xuất</button>
-  </div>
-</nav>
+<!-- ================================================================
+     TOAST CONTAINER — Thông báo nổi
+     Nằm ngoài mọi layout để luôn hiển thị trên cùng
+================================================================ -->
+<div class="toast-container" id="toast-container"></div>
 
-<div class="container">
-
-  <!-- ==========================================================
-       PAGE 1: ĐĂNG NHẬP
-       id="page-login" — ẩn/hiện bằng showPage()
-  ========================================================== -->
-  <div id="page-login" class="page active">
-    <div class="card" style="max-width: 420px; margin: 60px auto;">
-      <h2>Đăng nhập</h2>
-
-      <!-- Alert hiển thị lỗi -->
-      <div id="login-alert" class="alert alert-error"></div>
-
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="login-username" placeholder="Nhập username" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="Nhập password" />
-      </div>
-
-      <button class="btn btn-primary" style="width:100%" onclick="login()">Đăng nhập</button>
-
-      <p style="text-align:center; margin-top:16px; font-size:0.9rem">
-        Chưa có tài khoản?
-        <a href="#" onclick="showPage('page-register')">Đăng ký</a>
-      </p>
-    </div>
-  </div>
-
-  <!-- ==========================================================
-       PAGE 2: ĐĂNG KÝ
-  ========================================================== -->
-  <div id="page-register" class="page">
-    <div class="card" style="max-width: 420px; margin: 60px auto;">
-      <h2>Tạo tài khoản</h2>
-      <div id="register-alert" class="alert"></div>
-
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="reg-username" placeholder="Tên đăng nhập" />
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="reg-email" placeholder="Email" />
-      </div>
-      <div class="form-group">
-        <label>Password (tối thiểu 6 ký tự)</label>
-        <input type="password" id="reg-password" placeholder="Password" />
-      </div>
-
-      <button class="btn btn-primary" style="width:100%" onclick="register()">Đăng ký</button>
-      <p style="text-align:center; margin-top:16px; font-size:0.9rem">
-        Đã có tài khoản?
-        <a href="#" onclick="showPage('page-login')">Đăng nhập</a>
-      </p>
-    </div>
-  </div>
-
-  <!-- ==========================================================
-       PAGE 3: DASHBOARD CHÍNH (sau khi đăng nhập)
-  ========================================================== -->
-  <div id="page-dashboard" class="page">
-
-    <!-- Tabs điều hướng -->
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tab-stock')">📦 Tồn kho máu</button>
-      <button class="tab-btn" onclick="switchTab('tab-donors')">👥 Danh sách Donor</button>
-      <button class="tab-btn" onclick="switchTab('tab-add-donor')">➕ Thêm Donor</button>
+<!-- ================================================================
+     PAGE: ĐĂNG NHẬP
+     Hiển thị khi chưa có token
+================================================================ -->
+<div class="auth-page active" id="page-login">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-icon">🩸</div>
+      <h1 class="auth-title">Blood Bank</h1>
+      <p class="auth-subtitle">Hệ thống quản lý ngân hàng máu</p>
     </div>
 
-    <!-- --------------------------------------------------
-         TAB 1: Tồn kho máu
-    -------------------------------------------------- -->
-    <div id="tab-stock" class="tab-content">
-      <div class="card">
-        <h2>Tồn kho máu hiện tại</h2>
-        <div id="stock-grid" class="stock-grid">
-          <div class="loading">Đang tải...</div>
+    <!--
+      📚 HỌC: Form structure
+      Không dùng thẻ <form> để tránh page reload mặc định
+      Thay vào đó dùng div + button onclick
+    -->
+    <div class="flex flex-col gap-4">
+      <div class="form-group">
+        <label for="login-username">Tên đăng nhập</label>
+        <input
+          type="text"
+          id="login-username"
+          placeholder="Nhập username..."
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="login-password">Mật khẩu</label>
+        <input
+          type="password"
+          id="login-password"
+          placeholder="Nhập password..."
+          autocomplete="current-password"
+        />
+      </div>
+
+      <button class="btn btn-primary btn-full mt-4" onclick="login()" id="btn-login">
+        Đăng nhập
+      </button>
+    </div>
+
+    <div class="auth-footer">
+      Chưa có tài khoản?
+      <a href="#" onclick="showAuth('page-register')">Tạo tài khoản</a>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     PAGE: ĐĂNG KÝ
+================================================================ -->
+<div class="auth-page" id="page-register">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-icon">✚</div>
+      <h1 class="auth-title">Tạo tài khoản</h1>
+      <p class="auth-subtitle">Điền thông tin bên dưới để đăng ký</p>
+    </div>
+
+    <div class="flex flex-col gap-4">
+      <div class="form-group">
+        <label for="reg-username">Tên đăng nhập <span class="required">*</span></label>
+        <input type="text" id="reg-username" placeholder="vd: nguyen.van.a" />
+      </div>
+
+      <div class="form-group">
+        <label for="reg-email">Email <span class="required">*</span></label>
+        <input type="email" id="reg-email" placeholder="vd: name@hospital.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="reg-password">Mật khẩu <span class="required">*</span></label>
+        <input type="password" id="reg-password" placeholder="Tối thiểu 6 ký tự" />
+      </div>
+
+      <button class="btn btn-primary btn-full mt-4" onclick="register()">
+        Tạo tài khoản
+      </button>
+    </div>
+
+    <div class="auth-footer">
+      Đã có tài khoản?
+      <a href="#" onclick="showAuth('page-login')">Đăng nhập</a>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     APP SHELL — Hiển thị sau khi đăng nhập
+     Gồm: Sidebar + Main Content
+================================================================ -->
+<div class="app-shell" id="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <div class="logo-icon">🩸</div>
+      <div class="logo-text">
+        BloodBank
+        <span>Management v1.0</span>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <span class="nav-label">Menu chính</span>
+
+    <!--
+      📚 HỌC: onclick attribute
+      onclick="showPage('dashboard')" → gọi hàm JS với tham số
+      Cách khác: dùng addEventListener trong JS (tốt hơn cho code lớn)
+    -->
+    <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Dashboard
+    </div>
+
+    <div class="nav-item" id="nav-donors" onclick="showPage('donors')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Danh sách Donors
+    </div>
+
+    <div class="nav-item" id="nav-add-donor" onclick="showPage('add-donor')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+        <line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+      Thêm Donor
+    </div>
+
+    <span class="nav-label" style="margin-top: 8px">Tồn kho</span>
+
+    <div class="nav-item" id="nav-stock" onclick="showPage('stock')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      </svg>
+      Kho máu
+    </div>
+
+    <!-- User info + Logout -->
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div>
+          <div class="user-name" id="user-name">Admin</div>
+          <div class="user-role" id="user-role">staff</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Đăng xuất">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- ============================================================
+         PAGE: DASHBOARD
+    ============================================================ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h1 class="page-title">Tổng quan</h1>
+        <p class="page-subtitle" id="dashboard-date">Đang tải...</p>
+      </div>
+
+      <!-- Stats tổng -->
+      <div class="stats-grid" id="summary-stats">
+        <div class="card">
+          <div class="text-sm text-muted mb-4">Tổng donors</div>
+          <div style="font-size: var(--text-2xl); font-weight: 600;" id="total-donors">—</div>
+        </div>
+        <div class="card">
+          <div class="text-sm text-muted mb-4">Nhóm máu thiếu</div>
+          <div style="font-size: var(--text-2xl); font-weight: 600; color: var(--amber)" id="low-stock-count">—</div>
+        </div>
+        <div class="card">
+          <div class="text-sm text-muted mb-4">Tổng đơn vị máu</div>
+          <div style="font-size: var(--text-2xl); font-weight: 600; color: var(--blue)" id="total-units">—</div>
         </div>
       </div>
-    </div>
 
-    <!-- --------------------------------------------------
-         TAB 2: Danh sách Donor
-    -------------------------------------------------- -->
-    <div id="tab-donors" class="tab-content" style="display:none">
+      <!-- Blood stock grid -->
       <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
-          <h2>Danh sách Donor</h2>
-          <!-- Lọc theo nhóm máu -->
+        <div class="card-header">
           <div>
-            <select id="filter-blood" onchange="filterDonors()">
-              <option value="">Tất cả nhóm máu</option>
-              <option>A+</option><option>A-</option>
-              <option>B+</option><option>B-</option>
-              <option>O+</option><option>O-</option>
-              <option>AB+</option><option>AB-</option>
-            </select>
+            <div class="card-title">Tồn kho theo nhóm máu</div>
+            <div class="card-subtitle">Cập nhật realtime từ database</div>
           </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadStock(); loadDashboard()">
+            ↻ Làm mới
+          </button>
         </div>
-
-        <div id="donor-alert" class="alert"></div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Họ tên</th>
-              <th>Nhóm máu</th>
-              <th>Điện thoại</th>
-              <th>Thành phố</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody id="donor-table-body">
-            <tr><td colspan="6" class="loading">Đang tải...</td></tr>
-          </tbody>
-        </table>
+        <div class="stats-grid" id="stock-grid">
+          <!-- Skeleton loading -->
+          <div class="skeleton" style="height: 100px; border-radius: var(--radius-lg)"></div>
+          <div class="skeleton" style="height: 100px; border-radius: var(--radius-lg)"></div>
+          <div class="skeleton" style="height: 100px; border-radius: var(--radius-lg)"></div>
+          <div class="skeleton" style="height: 100px; border-radius: var(--radius-lg)"></div>
+        </div>
       </div>
     </div>
 
-    <!-- --------------------------------------------------
-         TAB 3: Thêm Donor mới
-    -------------------------------------------------- -->
-    <div id="tab-add-donor" class="tab-content" style="display:none">
-      <div class="card">
-        <h2>Thêm Donor mới</h2>
-        <div id="add-donor-alert" class="alert"></div>
+    <!-- ============================================================
+         PAGE: DANH SÁCH DONORS
+    ============================================================ -->
+    <div class="page" id="page-donors">
+      <div class="page-header">
+        <h1 class="page-title">Danh sách Donors</h1>
+        <p class="page-subtitle">Quản lý thông tin người hiến máu</p>
+      </div>
 
-        <div class="form-row">
+      <div class="card">
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <select id="filter-blood" onchange="filterDonors()">
+            <option value="">Tất cả nhóm máu</option>
+            <option>A+</option><option>A-</option>
+            <option>B+</option><option>B-</option>
+            <option>O+</option><option>O-</option>
+            <option>AB+</option><option>AB-</option>
+          </select>
+
+          <input
+            type="search"
+            id="filter-search"
+            placeholder="Tìm theo tên..."
+            oninput="filterDonors()"
+            style="min-width: 220px"
+          />
+
+          <button class="btn btn-primary btn-sm" onclick="showPage('add-donor')" style="margin-left: auto">
+            + Thêm donor
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Họ tên</th>
+                <th>Nhóm máu</th>
+                <th>Điện thoại</th>
+                <th>Thành phố</th>
+                <th>Ngày tạo</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="donor-tbody">
+              <tr>
+                <td colspan="6">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <div>Đang tải dữ liệu...</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         PAGE: THÊM DONOR
+    ============================================================ -->
+    <div class="page" id="page-add-donor">
+      <div class="page-header">
+        <h1 class="page-title">Thêm Donor mới</h1>
+        <p class="page-subtitle">Điền đầy đủ thông tin người hiến máu</p>
+      </div>
+
+      <!--
+        📚 HỌC: Info box pattern
+        Hiển thị hướng dẫn ngắn gọn cho user
+      -->
+      <div class="info-box">
+        <strong>Hướng dẫn:</strong> Các trường có dấu <span style="color: var(--red-400)">*</span>
+        là bắt buộc. Sau khi lưu, donor sẽ xuất hiện trong danh sách.
+      </div>
+
+      <div class="card">
+        <div class="form-grid">
           <div class="form-group">
-            <label>Họ tên *</label>
+            <label for="d-name">Họ và tên <span class="required">*</span></label>
             <input type="text" id="d-name" placeholder="Nguyễn Văn A" />
           </div>
+
           <div class="form-group">
-            <label>Nhóm máu *</label>
+            <label for="d-blood">Nhóm máu <span class="required">*</span></label>
             <select id="d-blood">
+              <option value="">-- Chọn nhóm máu --</option>
               <option>A+</option><option>A-</option>
               <option>B+</option><option>B-</option>
               <option>O+</option><option>O-</option>
               <option>AB+</option><option>AB-</option>
             </select>
           </div>
-        </div>
-        <div class="form-row">
+
           <div class="form-group">
-            <label>Điện thoại</label>
-            <input type="text" id="d-phone" placeholder="0901234567" />
+            <label for="d-phone">Số điện thoại</label>
+            <input type="tel" id="d-phone" placeholder="0901 234 567" />
           </div>
+
           <div class="form-group">
-            <label>Thành phố</label>
+            <label for="d-city">Thành phố</label>
             <input type="text" id="d-city" placeholder="Hồ Chí Minh" />
           </div>
-        </div>
-        <div class="form-group">
-          <label>Ngày sinh</label>
-          <input type="date" id="d-dob" />
+
+          <div class="form-group">
+            <label for="d-dob">Ngày sinh</label>
+            <input type="date" id="d-dob" />
+          </div>
         </div>
 
-        <button class="btn btn-primary" onclick="addDonor()">Lưu Donor</button>
-        <button class="btn btn-secondary" onclick="switchTab('tab-donors')" style="margin-left:8px">Hủy</button>
+        <div class="flex gap-4 mt-6">
+          <button class="btn btn-primary" onclick="addDonor()">
+            ✓ Lưu Donor
+          </button>
+          <button class="btn btn-ghost" onclick="showPage('donors')">
+            Hủy
+          </button>
+        </div>
       </div>
     </div>
 
-  </div><!-- end page-dashboard -->
+    <!-- ============================================================
+         PAGE: KHO MÁU
+    ============================================================ -->
+    <div class="page" id="page-stock">
+      <div class="page-header">
+        <h1 class="page-title">Kho máu</h1>
+        <p class="page-subtitle">Theo dõi và cập nhật tồn kho</p>
+      </div>
 
-</div><!-- end container -->
+      <div class="info-box">
+        <strong>Quy ước:</strong>
+        <span style="color: var(--green)">● Đủ</span> ≥ 20 đơn vị ·
+        <span style="color: var(--amber)">● Thiếu</span> 1–19 đơn vị ·
+        <span style="color: var(--red-400)">● Hết</span> = 0 đơn vị
+      </div>
 
+      <div class="stats-grid" id="stock-manage-grid">
+        <div class="skeleton" style="height: 140px; border-radius: var(--radius-lg)"></div>
+        <div class="skeleton" style="height: 140px; border-radius: var(--radius-lg)"></div>
+        <div class="skeleton" style="height: 140px; border-radius: var(--radius-lg)"></div>
+        <div class="skeleton" style="height: 140px; border-radius: var(--radius-lg)"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================
+     📚 HỌC: Tổ chức code JS
+     Chia thành các phần rõ ràng:
+       1. Config & State
+       2. Utility functions (hàm dùng chung)
+       3. API calls
+       4. Auth
+       5. UI: Donors
+       6. UI: Stock
+       7. Init
+================================================================ -->
 <script>
-/* ============================================================
-   JAVASCRIPT — Toàn bộ logic frontend
-   
-   PHẦN 1: Biến và hằng số
-   PHẦN 2: Hàm điều hướng (UI)
-   PHẦN 3: Hàm gọi API (fetch)
-   PHẦN 4: Hàm xử lý Auth
-   PHẦN 5: Hàm xử lý Donors
-   PHẦN 6: Hàm xử lý Stock
-   PHẦN 7: Khởi động app
-============================================================ */
 
-/* ----------------------------------------------------------
-   PHẦN 1: BIẾN VÀ HẰNG SỐ
----------------------------------------------------------- */
+/* ================================================================
+   PHẦN 1: CONFIG & STATE (Cấu hình và trạng thái)
+================================================================ */
 
-// URL gốc của API — phải khớp với server FastAPI đang chạy
-const API_URL = "http://localhost:8000";
+// API_URL: địa chỉ server FastAPI
+// Phải khớp với port uvicorn đang chạy
+const API_URL = 'http://localhost:8000';
 
-// Token JWT — lưu trong memory (biến JS)
-// Lưu ý: refresh trang sẽ mất token → cần đăng nhập lại
-// Cách tốt hơn (nâng cao): lưu vào sessionStorage
-let authToken = null;
-let currentUser = null;
+// State: biến lưu trạng thái của app
+// Đây là cách đơn giản — app lớn dùng Redux/Zustand
+let state = {
+  token: null,          // JWT token sau khi đăng nhập
+  user: null,           // Thông tin user hiện tại
+  donors: [],           // Cache danh sách donors
+  stock: [],            // Cache tồn kho
+};
 
-/* ----------------------------------------------------------
-   PHẦN 2: HÀM ĐIỀU HƯỚNG UI
----------------------------------------------------------- */
+/* ================================================================
+   PHẦN 2: UTILITY FUNCTIONS
+================================================================ */
 
-// showPage: ẩn tất cả page, chỉ hiện page được chọn
+/*
+  showToast: Hiển thị thông báo nổi (toast notification)
+
+  📚 HỌC: DOM Creation pattern
+  Thay vì innerHTML, tạo element bằng:
+  1. document.createElement('div')
+  2. Gán class, style, nội dung
+  3. appendChild vào container
+  → An toàn hơn innerHTML (tránh XSS)
+*/
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <span>${type === 'success' ? '✓' : '✕'}</span>
+    <span>${message}</span>
+  `;
+  container.appendChild(toast);
+
+  // Tự xóa sau 3 giây
+  // setTimeout(callback, ms) → chạy callback sau X ms
+  setTimeout(() => {
+    toast.classList.add('removing');
+    setTimeout(() => toast.remove(), 300); // Đợi animation xong rồi xóa
+  }, 3000);
+}
+
+/*
+  formatDate: Format ngày giờ đẹp hơn
+  "2024-01-15T08:30:00" → "15/01/2024"
+*/
+function formatDate(isoString) {
+  if (!isoString) return '—';
+  const date = new Date(isoString);
+  return date.toLocaleDateString('vi-VN'); // Format theo tiếng Việt
+}
+
+/*
+  showPage: Chuyển giữa các trang trong dashboard
+  📚 HỌC: SPA (Single Page Application) pattern
+  Không reload trang — chỉ ẩn/hiện div bằng CSS class
+*/
 function showPage(pageId) {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.getElementById(pageId).classList.add("active");
+  // Ẩn tất cả pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Hiện page được chọn
+  document.getElementById(`page-${pageId}`).classList.add('active');
+
+  // Cập nhật nav active state
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.getElementById(`nav-${pageId}`);
+  if (navEl) navEl.classList.add('active');
+
+  // Load dữ liệu tương ứng
+  if (pageId === 'dashboard') loadDashboard();
+  if (pageId === 'donors') loadDonors();
+  if (pageId === 'stock') loadStock();
 }
 
-// switchTab: ẩn tất cả tab content, chỉ hiện tab được chọn
-function switchTab(tabId) {
-  // Ẩn tất cả tab content
-  document.querySelectorAll(".tab-content").forEach(t => t.style.display = "none");
-  // Bỏ active tất cả tab button
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-
-  // Hiện tab được chọn
-  document.getElementById(tabId).style.display = "block";
-
-  // Đánh dấu button active — tìm button có onclick chứa tabId
-  document.querySelectorAll(".tab-btn").forEach(b => {
-    if (b.getAttribute("onclick").includes(tabId)) b.classList.add("active");
-  });
-
-  // Load dữ liệu khi chuyển tab
-  if (tabId === "tab-stock") loadStock();
-  if (tabId === "tab-donors") loadDonors();
+/*
+  showAuth: Chuyển giữa login / register
+*/
+function showAuth(pageId) {
+  document.querySelectorAll('.auth-page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
 }
 
-// showAlert: hiển thị thông báo lỗi hoặc thành công
-function showAlert(elementId, message, type = "error") {
-  const el = document.getElementById(elementId);
-  el.textContent = message;
-  el.className = `alert alert-${type} show`;
-  // Tự ẩn sau 4 giây
-  setTimeout(() => el.classList.remove("show"), 4000);
-}
+/* ================================================================
+   PHẦN 3: API CALL WRAPPER
+   ================================================================
+   📚 HỌC: async/await và fetch
+   - fetch() = gửi HTTP request, trả về Promise
+   - await = đợi Promise resolve (chỉ dùng trong async function)
+   - try/catch = bắt lỗi (network error, server error...)
 
-/* ----------------------------------------------------------
-   PHẦN 3: HÀM GỌI API (fetch wrapper)
----------------------------------------------------------- */
+   Tại sao cần wrapper? Để:
+   1. Tự động thêm token vào header
+   2. Xử lý lỗi tập trung 1 chỗ
+   3. Parse JSON tự động
+   4. Không lặp lại code
+================================================================ */
+async function api(endpoint, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
 
-// apiCall: hàm trung tâm gọi API — dùng fetch()
-// method: "GET", "POST", "PUT", "DELETE"
-// body: object JavaScript (sẽ tự convert sang JSON)
-// requireAuth: có gửi token không?
-async function apiCall(endpoint, method = "GET", body = null, requireAuth = true) {
-  // Cấu hình request
-  const options = {
-    method: method,
-    headers: {
-      "Content-Type": "application/json",   // Báo server: gửi JSON
-    }
-  };
-
-  // Nếu cần xác thực → thêm token vào header
-  // Định dạng: "Authorization: Bearer eyJhbGc..."
-  if (requireAuth && authToken) {
-    options.headers["Authorization"] = `Bearer ${authToken}`;
+  // Thêm JWT token vào mọi request (trừ login/register)
+  if (state.token) {
+    headers['Authorization'] = `Bearer ${state.token}`;
   }
 
-  // Nếu có body (POST/PUT) → chuyển object sang chuỗi JSON
-  if (body) {
-    options.body = JSON.stringify(body);
+  const config = { method, headers };
+  if (body) config.body = JSON.stringify(body);
+
+  // Bước 1: Gửi request
+  const response = await fetch(`${API_URL}${endpoint}`, config);
+
+  // Bước 2: Đọc response dạng text trước
+  const text = await response.text();
+
+  // Bước 3: Parse JSON (nếu có nội dung)
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    // Server trả về text thường (không phải JSON) → lỗi
+    throw new Error(`Server lỗi: ${text.substring(0, 100)}`);
   }
 
-  // fetch() = gọi HTTP request
-  // await = đợi response (JavaScript async/await)
-  const response = await fetch(`${API_URL}${endpoint}`, options);
-
-  // Parse response body thành object JavaScript
-  const data = await response.json();
-
-  // Nếu status code không phải 2xx → ném lỗi
+  // Bước 4: Kiểm tra status code
   // response.ok = true nếu status 200-299
   if (!response.ok) {
-    // FastAPI trả lỗi dạng: { "detail": "thông báo lỗi" }
-    throw new Error(data.detail || "Có lỗi xảy ra");
+    throw new Error(data.detail || `Lỗi ${response.status}`);
   }
 
   return data;
 }
 
-/* ----------------------------------------------------------
+/* ================================================================
    PHẦN 4: AUTHENTICATION
----------------------------------------------------------- */
+================================================================ */
 
-// login: gửi username/password → nhận token
 async function login() {
-  const username = document.getElementById("login-username").value.trim();
-  const password = document.getElementById("login-password").value;
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
 
   if (!username || !password) {
-    showAlert("login-alert", "Vui lòng nhập đầy đủ thông tin");
+    showToast('Vui lòng nhập username và password', 'error');
     return;
   }
 
+  const btn = document.getElementById('btn-login');
+  btn.textContent = 'Đang đăng nhập...';
+  btn.disabled = true;
+
   try {
-    // POST /auth/login với body { username, password }
-    const data = await apiCall("/auth/login", "POST",
-      { username, password },
-      false  // Chưa cần token
-    );
+    const data = await api('/auth/login', 'POST', { username, password });
 
-    // Lưu token và thông tin user
-    authToken = data.access_token;
-    currentUser = data.user;
+    // Lưu token và user vào state
+    state.token = data.access_token;
+    state.user = data.user;
 
-    // Cập nhật UI: hiện tên user ở navbar
-    document.getElementById("nav-user").style.display = "flex";
-    document.getElementById("nav-username").textContent =
-      `👤 ${currentUser.username} (${currentUser.role})`;
+    // Cập nhật UI sidebar
+    document.getElementById('user-name').textContent = data.user.username;
+    document.getElementById('user-role').textContent = data.user.role;
+    document.getElementById('user-avatar').textContent =
+      data.user.username.charAt(0).toUpperCase(); // Chữ cái đầu làm avatar
 
-    // Chuyển sang dashboard
-    showPage("page-dashboard");
-    loadStock();    // Load dữ liệu ngay khi vào
+    // Hiện app, ẩn auth
+    document.querySelector('.auth-page.active').classList.remove('active');
+    document.getElementById('app-shell').classList.add('visible');
 
-  } catch (error) {
-    showAlert("login-alert", error.message);
+    showToast(`Chào mừng, ${data.user.username}! 👋`);
+    loadDashboard();
+
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    // finally luôn chạy dù thành công hay lỗi
+    btn.textContent = 'Đăng nhập';
+    btn.disabled = false;
   }
 }
 
-// register: tạo tài khoản mới
 async function register() {
-  const username = document.getElementById("reg-username").value.trim();
-  const email = document.getElementById("reg-email").value.trim();
-  const password = document.getElementById("reg-password").value;
+  const username = document.getElementById('reg-username').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
 
   if (!username || !email || !password) {
-    showAlert("register-alert", "Vui lòng nhập đầy đủ thông tin");
+    showToast('Vui lòng điền đầy đủ thông tin', 'error');
     return;
   }
 
   try {
-    // POST /auth/register
-    await apiCall("/auth/register", "POST",
-      { username, email, password },
-      false
-    );
-
-    showAlert("register-alert", "Đăng ký thành công! Đang chuyển đến trang đăng nhập...", "success");
-    setTimeout(() => showPage("page-login"), 1500);
-
-  } catch (error) {
-    showAlert("register-alert", error.message);
+    await api('/auth/register', 'POST', { username, email, password });
+    showToast('Đăng ký thành công! Đang chuyển trang...');
+    setTimeout(() => showAuth('page-login'), 1200);
+  } catch (err) {
+    showToast(err.message, 'error');
   }
 }
 
-// logout: xóa token, về trang login
 function logout() {
-  authToken = null;
-  currentUser = null;
-  document.getElementById("nav-user").style.display = "none";
-  showPage("page-login");
+  state.token = null;
+  state.user = null;
+  state.donors = [];
+  document.getElementById('app-shell').classList.remove('visible');
+  showAuth('page-login');
+  showToast('Đã đăng xuất');
 }
 
-/* ----------------------------------------------------------
-   PHẦN 5: DONORS
----------------------------------------------------------- */
+/* ================================================================
+   PHẦN 5: DASHBOARD
+================================================================ */
 
-// Lưu danh sách donors hiện tại (để filter không cần gọi API lại)
-let allDonors = [];
+async function loadDashboard() {
+  // Hiện ngày giờ hiện tại
+  const now = new Date().toLocaleDateString('vi-VN', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  document.getElementById('dashboard-date').textContent = now;
 
-// loadDonors: lấy danh sách từ API rồi render ra table
+  try {
+    // Gọi cả 2 API cùng lúc bằng Promise.all
+    // Nhanh hơn gọi tuần tự
+    const [donors, stocks] = await Promise.all([
+      api('/donors/'),
+      api('/stock/')
+    ]);
+
+    // Cập nhật summary stats
+    document.getElementById('total-donors').textContent = donors.length;
+    document.getElementById('total-units').textContent =
+      stocks.reduce((sum, s) => sum + s.units, 0);
+    document.getElementById('low-stock-count').textContent =
+      stocks.filter(s => s.units < 20).length;
+
+    // Render stock grid
+    renderStockCards('stock-grid', stocks, false);
+
+  } catch (err) {
+    showToast('Lỗi tải dashboard: ' + err.message, 'error');
+  }
+}
+
+/* ================================================================
+   PHẦN 6: DONORS
+================================================================ */
+
 async function loadDonors() {
   try {
-    allDonors = await apiCall("/donors/");
-    renderDonorTable(allDonors);
-  } catch (error) {
-    showAlert("donor-alert", error.message);
+    state.donors = await api('/donors/');
+    renderDonors(state.donors);
+  } catch (err) {
+    showToast('Lỗi tải donors: ' + err.message, 'error');
   }
 }
 
-// renderDonorTable: tạo HTML cho bảng donor
-function renderDonorTable(donors) {
-  const tbody = document.getElementById("donor-table-body");
+/*
+  renderDonors: Tạo HTML cho bảng donors
+  📚 HỌC: Template literal + .map() + .join('')
+  Cách hiệu quả để tạo danh sách HTML từ mảng dữ liệu
+*/
+function renderDonors(donors) {
+  const tbody = document.getElementById('donor-tbody');
 
   if (donors.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888">Không có donor nào</td></tr>';
+    tbody.innerHTML = `
+      <tr><td colspan="6">
+        <div class="empty-state">
+          <div class="empty-state-icon">👥</div>
+          <div class="empty-state-title">Chưa có donor nào</div>
+          <div>Nhấn "Thêm donor" để bắt đầu</div>
+        </div>
+      </td></tr>
+    `;
     return;
   }
 
-  // .map() = duyệt qua mỗi donor, tạo 1 chuỗi HTML
-  // .join("") = ghép tất cả lại thành 1 chuỗi lớn
+  /*
+    📚 HỌC: .map() + .join('')
+    donors.map(d => `<tr>...</tr>`) → mảng các string HTML
+    .join('') → ghép thành 1 string lớn
+    Nhanh và gọn hơn vòng for loop truyền thống
+  */
   tbody.innerHTML = donors.map(d => `
     <tr>
-      <td>${d.id}</td>
-      <td>${d.name}</td>
-      <td><span class="badge">${d.blood_type}</span></td>
-      <td>${d.phone || "—"}</td>
-      <td>${d.city || "—"}</td>
       <td>
-        <button class="btn btn-danger btn-small"
-          onclick="deleteDonor(${d.id}, '${d.name}')">Xóa</button>
+        <div style="display:flex; align-items:center; gap:10px">
+          <div style="
+            width:30px; height:30px; border-radius:50%;
+            background: rgba(192,57,43,0.2);
+            display:flex; align-items:center; justify-content:center;
+            font-size:12px; font-weight:600; color:var(--red-400);
+            flex-shrink:0;
+          ">${d.name.charAt(0)}</div>
+          <span style="font-weight:500">${d.name}</span>
+        </div>
+      </td>
+      <td><span class="badge">${d.blood_type}</span></td>
+      <td>${d.phone || '<span class="text-muted">—</span>'}</td>
+      <td>${d.city || '<span class="text-muted">—</span>'}</td>
+      <td class="text-muted">${formatDate(d.created_at)}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="deleteDonor(${d.id}, '${d.name}')">
+          Xóa
+        </button>
       </td>
     </tr>
-  `).join("");
+  `).join('');
 }
 
-// filterDonors: lọc theo nhóm máu (không cần gọi API)
 function filterDonors() {
-  const selected = document.getElementById("filter-blood").value;
-  if (!selected) {
-    renderDonorTable(allDonors);
-  } else {
-    const filtered = allDonors.filter(d => d.blood_type === selected);
-    renderDonorTable(filtered);
-  }
+  const bloodFilter  = document.getElementById('filter-blood').value;
+  const searchFilter = document.getElementById('filter-search').value.toLowerCase();
+
+  const filtered = state.donors.filter(d => {
+    const matchBlood  = !bloodFilter  || d.blood_type === bloodFilter;
+    const matchSearch = !searchFilter || d.name.toLowerCase().includes(searchFilter);
+    return matchBlood && matchSearch;
+  });
+
+  renderDonors(filtered);
 }
 
-// addDonor: đọc form, gửi POST request
 async function addDonor() {
-  const name = document.getElementById("d-name").value.trim();
-  const blood_type = document.getElementById("d-blood").value;
-  const phone = document.getElementById("d-phone").value.trim();
-  const city = document.getElementById("d-city").value.trim();
-  const date_of_birth = document.getElementById("d-dob").value;
+  const name       = document.getElementById('d-name').value.trim();
+  const blood_type = document.getElementById('d-blood').value;
+  const phone      = document.getElementById('d-phone').value.trim();
+  const city       = document.getElementById('d-city').value.trim();
+  const dob        = document.getElementById('d-dob').value;
 
-  if (!name) {
-    showAlert("add-donor-alert", "Vui lòng nhập họ tên");
+  if (!name || !blood_type) {
+    showToast('Vui lòng nhập Họ tên và Nhóm máu', 'error');
     return;
   }
 
   try {
-    // POST /donors/ với body là thông tin donor
-    await apiCall("/donors/", "POST", {
+    await api('/donors/', 'POST', {
       name, blood_type,
       phone: phone || null,
       city: city || null,
-      date_of_birth: date_of_birth || null
+      date_of_birth: dob || null,
     });
 
-    showAlert("add-donor-alert", "Đã thêm donor thành công!", "success");
+    showToast(`Đã thêm donor "${name}" thành công!`);
 
     // Reset form
-    ["d-name", "d-phone", "d-city", "d-dob"].forEach(id => {
-      document.getElementById(id).value = "";
+    ['d-name','d-phone','d-city','d-dob'].forEach(id => {
+      document.getElementById(id).value = '';
     });
+    document.getElementById('d-blood').value = '';
 
-    // Chuyển về tab danh sách
-    setTimeout(() => switchTab("tab-donors"), 1000);
+    setTimeout(() => showPage('donors'), 800);
 
-  } catch (error) {
-    showAlert("add-donor-alert", error.message);
+  } catch (err) {
+    showToast(err.message, 'error');
   }
 }
 
-// deleteDonor: gửi DELETE request (chỉ admin)
 async function deleteDonor(id, name) {
-  // Xác nhận trước khi xóa
-  if (!confirm(`Xóa donor "${name}"?`)) return;
+  if (!confirm(`Xóa donor "${name}"?\nThao tác này không thể hoàn tác.`)) return;
 
   try {
-    // DELETE /donors/{id}
-    await apiCall(`/donors/${id}`, "DELETE");
-    showAlert("donor-alert", `Đã xóa donor "${name}"`, "success");
-    loadDonors();  // Reload danh sách
-
-  } catch (error) {
-    showAlert("donor-alert", error.message);
+    await api(`/donors/${id}`, 'DELETE');
+    showToast(`Đã xóa "${name}"`);
+    loadDonors(); // Reload danh sách
+  } catch (err) {
+    showToast(err.message, 'error');
   }
 }
 
-/* ----------------------------------------------------------
-   PHẦN 6: BLOOD STOCK
----------------------------------------------------------- */
+/* ================================================================
+   PHẦN 7: BLOOD STOCK
+================================================================ */
 
-// loadStock: lấy tồn kho từ API
 async function loadStock() {
   try {
-    const stocks = await apiCall("/stock/");
-    renderStockGrid(stocks);
-  } catch (error) {
-    document.getElementById("stock-grid").innerHTML =
-      `<p style="color:red">Lỗi: ${error.message}. Thử POST /stock/init trước.</p>`;
+    state.stock = await api('/stock/');
+    renderStockCards('stock-grid', state.stock, false);
+    renderStockCards('stock-manage-grid', state.stock, true);
+  } catch (err) {
+    showToast('Lỗi tải kho máu: ' + err.message, 'error');
   }
 }
 
-// renderStockGrid: tạo HTML cho grid tồn kho
-function renderStockGrid(stocks) {
-  const grid = document.getElementById("stock-grid");
+/*
+  renderStockCards: Render các card tồn kho
+  editable: nếu true thì hiện input để cập nhật
+*/
+function renderStockCards(containerId, stocks, editable) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
   if (stocks.length === 0) {
-    grid.innerHTML = '<p>Chưa có dữ liệu tồn kho. Hãy gọi POST /stock/init</p>';
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-state-icon">🗄️</div>
+        <div class="empty-state-title">Chưa có dữ liệu kho</div>
+        <div>Gọi <code>POST /stock/init</code> để khởi tạo</div>
+      </div>
+    `;
     return;
   }
 
-  grid.innerHTML = stocks.map(s => {
-    // Phân loại: thấp < 10, đủ >= 10
-    const statusClass = s.units < 10 ? "low" : "ok";
-    const statusText = s.units < 10 ? "⚠️ Thiếu" : "✅ Đủ";
+  container.innerHTML = stocks.map(s => {
+    // Phân loại trạng thái
+    const cls    = s.units >= 20 ? 'ok' : s.units > 0 ? 'low' : 'empty';
+    const label  = s.units >= 20 ? 'Đủ' : s.units > 0 ? 'Thiếu' : 'Hết';
 
     return `
-      <div class="stock-card ${statusClass}">
-        <div class="blood-type">${s.blood_type}</div>
-        <div class="units">${s.units}</div>
-        <div class="label">đơn vị · ${statusText}</div>
+      <div class="stat-card ${cls}">
+        <div class="blood-type-label">${s.blood_type}</div>
+        <div class="blood-units ${cls}">${s.units}</div>
+        <div class="blood-status ${cls}">${label}</div>
+        ${editable ? `
+          <div style="margin-top:12px; display:flex; gap:6px; align-items:center">
+            <input
+              type="number"
+              min="0"
+              value="${s.units}"
+              id="stock-input-${s.blood_type.replace('+','p').replace('-','m')}"
+              style="width:70px; padding:4px 8px; font-size:12px"
+            />
+            <button
+              class="btn btn-primary btn-sm"
+              onclick="updateStock('${s.blood_type}')"
+            >Lưu</button>
+          </div>
+        ` : ''}
       </div>
     `;
-  }).join("");
+  }).join('');
 }
 
-/* ----------------------------------------------------------
-   PHẦN 7: KHỞI ĐỘNG APP
-   
-   Cho phép nhấn Enter để submit form
----------------------------------------------------------- */
+async function updateStock(bloodType) {
+  const inputId = `stock-input-${bloodType.replace('+','p').replace('-','m')}`;
+  const units = parseInt(document.getElementById(inputId).value);
 
-// Nhấn Enter trong form đăng nhập → login()
-document.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    const activePage = document.querySelector(".page.active");
-    if (activePage && activePage.id === "page-login") login();
-    if (activePage && activePage.id === "page-register") register();
+  if (isNaN(units) || units < 0) {
+    showToast('Số đơn vị không hợp lệ', 'error');
+    return;
   }
+
+  try {
+    await api(`/stock/${encodeURIComponent(bloodType)}`, 'PUT', { units });
+    showToast(`Đã cập nhật ${bloodType}: ${units} đơn vị`);
+    loadStock();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+/* ================================================================
+   PHẦN 8: KEYBOARD SHORTCUTS & INIT
+================================================================ */
+
+// Nhấn Enter để submit form đăng nhập
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const loginPage = document.getElementById('page-login');
+  const regPage   = document.getElementById('page-register');
+  if (loginPage.classList.contains('active')) login();
+  if (regPage.classList.contains('active')) register();
 });
 
-// Hiển thị trang login khi mở app
-showPage("page-login");
+// Khởi chạy: hiện trang login
+showAuth('page-login');
 
-/* ============================================================
-   GHI CHÚ QUAN TRỌNG — Học từng bước:
-   
-   BƯỚC 1: Hiểu fetch() và async/await
-   - fetch() = gửi HTTP request từ browser đến server
-   - async/await = đợi kết quả mà không đóng băng browser
-   
-   BƯỚC 2: Hiểu JWT Authentication
-   - Đăng nhập → nhận token → lưu vào biến
-   - Mỗi request tiếp theo → gửi token trong header
-   - Server xác thực token → cho phép hoặc từ chối
-   
-   BƯỚC 3: Hiểu DOM manipulation
-   - document.getElementById() → tìm element
-   - .innerHTML = "..." → thay đổi nội dung HTML
-   - .style.display = "none/block" → ẩn/hiện element
-   
-   BƯỚC 4: Thử mở DevTools → Network
-   - Xem mỗi request gửi gì, nhận gì
-   - Đây là kỹ năng debug quan trọng nhất!
-============================================================ */
+/*
+  📚 GHI CHÚ CUỐI:
+
+  Để app này chạy được bạn cần:
+  1. Server FastAPI đang chạy: uvicorn main:app --reload
+  2. Mở file này qua server, không phải double-click file
+     → Dùng VS Code Live Server extension, hoặc:
+     → python -m http.server 5500 (trong thư mục frontend/)
+     → Mở http://localhost:5500
+
+  DEBUG:
+  - Mở DevTools (F12) → tab "Network" → xem từng request
+  - Tab "Console" → xem lỗi JS
+  - Tab "Application" → xem localStorage, cookies
+
+  LUỒNG DỮ LIỆU:
+  User action → JS function → api() → fetch() → FastAPI
+     ↓
+  FastAPI xử lý → SQLAlchemy → SQLite database
+     ↓
+  Trả về JSON → api() parse → render HTML → user thấy kết quả
+*/
 </script>
 </body>
 </html>
