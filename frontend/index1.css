@@ -1,0 +1,84 @@
+:root {
+      /* --- Màu nền (từ tối → sáng dần) --- */
+      --bg-900: #0a0d12;      /* Nền tối nhất (body) */
+      --bg-800: #111520;      /* Card chính */
+      --bg-700: #161b2e;      /* Card hover */
+      --bg-600: #1e253d;      /* Input, sidebar */
+      --bg-500: #252d47;      /* Border subtle */
+
+      /* --- Màu chính: Đỏ máu --- */
+      --red-600: #c0392b;     /* Màu chính */
+      --red-500: #e74c3c;     /* Hover state */
+      --red-400: #ff6b6b;     /* Accent sáng */
+      --red-glow: rgba(192, 57, 43, 0.25); /* Glow effect */
+
+      /* --- Màu chữ --- */
+      --text-100: #f0f2f7;    /* Chữ chính (trắng mờ) */
+      --text-300: #8892aa;    /* Chữ phụ (xám) */
+      --text-500: #4a5568;    /* Placeholder, disabled */
+
+      /* --- Màu trạng thái --- */
+      --green: #27ae60;       /* Thành công */
+      --green-bg: rgba(39, 174, 96, 0.12);
+      --amber: #f39c12;       /* Cảnh báo */
+      --amber-bg: rgba(243, 156, 18, 0.12);
+      --blue: #3498db;        /* Thông tin */
+      --blue-bg: rgba(52, 152, 219, 0.12);
+
+      /* --- Spacing System (hệ thống khoảng cách) ---
+         📚 HỌC: Dùng bội số của 4px hoặc 8px
+         Tạo sự nhất quán trong toàn bộ layout
+      */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+
+      /* --- Typography Scale --- */
+      --text-xs: 11px;
+      --text-sm: 13px;
+      --text-base: 15px;
+      --text-lg: 18px;
+      --text-xl: 22px;
+      --text-2xl: 28px;
+
+      /* --- Border & Shadow --- */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      --border: 1px solid rgba(255,255,255,0.07);
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --shadow-red: 0 0 30px var(--red-glow);
+
+      /* --- Transition (hiệu ứng chuyển động) ---
+         📚 HỌC: transition shorthand
+         property | duration | timing-function
+         "all 0.2s ease" = mọi thuộc tính đổi trong 0.2s
+      */
+      --transition: all 0.2s ease;
+    }
+
+*, *::before, *::after {
+      box-sizing: border-box; /* padding không làm element to hơn */
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px; /* Base font size — 1rem = 16px */
+      scroll-behavior: smooth; /* Cuộn mượt khi nhảy đến anchor */
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      color: #602602;
+      background-color: #f0f2f7;
+      line-height: 1.6;
+      min-height: 100vh;
+    }

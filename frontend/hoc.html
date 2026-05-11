@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🩸 Ngân hàng máu</title>
-  <link rel="stylesheet1" href="index.css" />
+  <link rel="stylesheet" href="index1.css" />
 </head>
 <body>
-<div class = "container">
+<div class = "toast-container" id="toast-container"></div>
   <nav>
     <h1> ♥️ Blood Bank App</h1>
     <div id = "nav-user">
@@ -22,16 +22,36 @@
       <div id="alert1" class="alert alert-error"></div>
       <div class="form-group">
         <label>Username</label>
-        <input type="text" id="username-login" placeholder="Nhập username" />\
+        <input type="text" id="username-login" placeholder="Nhập username" />
       </div>
       <div class="form-group">
         <label>Password</label>
         <input type="password" id="password-login" placeholder="Nhập password" />
       </div>
       <button class="btn btn-primary" style="width: 100%" onclick="login()" id="btn-login">Đăng nhập</button> 
-
+      <button class="btn btn-primary" style="width: 100%" onclick="register()" id="btn-register">Đăng ký</button>
+    </div>
   </div>
+</div>
+<div class = "auth-page" id="page-register">
+  <div class="card" style = "max-width: 420px; margin: 60px auto;">
+    <h2>Đăng ký tài khoản</h2>
+    <div class = "form-group">
+      <label>Tên tài khoản</label>
+      <input type ="text" id="user-register" placeholder="Nhập số user" />
+    </div>
+    <div class="form-group">
+      <label>Mật khẩu</label>
+      <input type="password" id="password-register" placeholder="Nhập mật khẩu" />
+    </div>
+    <div class="form-group">
+      <label>Nhập mã số NV:</label>
+      <input class="numeric" id="ms-register" placeholder="Nhập MSNV" />
+    </div>
+    <button class="btn-register" style="width: 100%;" onclick="register()" id="btn-register">Đăng ký tài khoản</button>
+    <button class="btn-back" style="width: 100%;" onclick="btwindow()" id="btn-back-register">Quay về</button>
+  </div>
+  
+</div>
 
-</div>
-</div>
 </body>
