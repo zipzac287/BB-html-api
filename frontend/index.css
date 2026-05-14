@@ -714,13 +714,12 @@
     ============================================================ */
     .auth-page {
       min-height: 100vh;
-      display: flex;
       align-items: center;
       justify-content: center;
       padding: var(--space-6);
       display: none;
     }
-    .auth-page.active { display: flex; }
+    .active { display: block; }
 
     .auth-card {
       background: var(--bg-800);
