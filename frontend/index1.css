@@ -76,11 +76,11 @@
     }
 
     body {
-    background-color: #0b3269;
+    background-color: #02214d;
     color: #333;
     display: flex;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 20px 10px;
     min-height: 100vh;
     }
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
@@ -92,171 +92,98 @@
     font-family: 'Poppins', sans-serif; /* Font chữ hiện đại */
 }
 
-.container {
-    max-width: 1200px;
+.menu {
     width: 100%;
+    min-height: 100vh;
     display : none;
+    justify-content: flex-start;
 }
-.hien { display: grid};
-/* Header styled hiện đại */
-header {
-    text-align: center;
-    margin-bottom: 60px;
+.hien { 
+  display: flex;
 }
+.side-bar {
+      grid-row: 1 / -1;
+      border: #0e1d3e;
+      background: var(--bg-800);
+      border-right: 2px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      width: 200px;
 
-header .logo {
-    font-size: 3rem;
-    color: #e74c3c;
-    margin-bottom: 10px;
-    display: inline-block;
-    padding: 15px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 0 10px 20px rgba(231, 76, 60, 0.2);
 }
-
-header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #a70000;
-    letter-spacing: -1px;
-}
-
-header h1 .highlight {
-    color: #e74c3c;
-    font-weight: 300;
-}
-
-header p {
-    color: #7f8c8d;
-    font-size: 1rem;
-    margin-top: 5px;
-}
-
-/* Chia lưới linh hoạt */
-.menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-}
-
-/* Card styled Modern */
-.menu-card {
-    background: white;
-    border-radius: 20px; /* Bo góc lớn hơn */
-    padding: 30px;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.03);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.05); /* Đổ bóng mịn */
-}
-
-/* Hiệu ứng Hover cho Card */
-.menu-card:hover {
-    transform: translateY(-10px); /* Nổi lên khi hover */
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-}
-
-/* Header của từng Card */
-.card-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #f0f2f5;
-}
-
-.card-header i {
-    font-size: 2rem;
-    margin-right: 15px;
-}
-
-.card-header h2 {
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: #2c3e50;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Nhóm các nút bấm */
-.button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-/* Style cho các nút bấm mới */
-button {
-    background: #f8f9fa;
-    border: none;
-    color: #444;
-    padding: 15px 20px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-button i {
-    margin-right: 12px;
-    font-size: 1.1rem;
-    opacity: 0.7;
-    width: 20px;
-    text-align: center;
-}
-
-button:hover {
-    background: #e74c3c;
-    color: white;
-    transform: translateX(5px); /* Hiệu ứng đẩy sang phải */
-}
-
-button:hover i {
-    opacity: 1;
-}
-
-/* Tùy chỉnh màu sắc riêng cho từng Card */
-/* Donor - Đỏ */
-.card-red .card-header i { color: #e74c3c; }
-.card-red button:hover { background: linear-gradient(135deg, #ff6b6b, #e74c3c); }
-
-/* Kho Thô - Cam */
-.card-orange .card-header i { color: #f39c12; }
-.card-orange button:hover { background: linear-gradient(135deg, #f1c40f, #f39c12); }
-
-/* Kho Sạch - Xanh lá */
-.card-green .card-header i { color: #27ae60; }
-.card-green button:hover { background: linear-gradient(135deg, #2ecc71, #27ae60); }
-
-/* Bệnh nhân - Xanh dương */
-.card-blue .card-header i { color: #3498db; }
-.card-blue button:hover { background: linear-gradient(135deg, #5dade2, #3498db); }
-
-/* Footer */
-footer {
-    text-align: center;
-    margin-top: 60px;
-    color: #bdc3c7;
-    font-size: 0.85rem;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-    .menu-grid {
-        grid-template-columns: 1fr;
+.menu-logo {
+      text-align: center;
+      border-width: 1px ;
+      border-style: solid;
+      border-color: #8892aa;
+      padding: 10px;
+      padding-right: 150px;
     }
-    header h1 {
-        font-size: 2rem;
+
+    .menu-icon {
+      width: 40px; height: 40px;
+      background: var(--red-600);
+      border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin: 0 auto var(--space-4);
+      box-shadow: var(--shadow-red);
+      animation: pulse 3s ease-in-out infinite;
     }
+.menu-title {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 18px;
+  font-weight: bolder;
+  color: #d5d5d5;
+}
+.menu-subtitle {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 12px;
+  font-weight: 200px;
+  color: #8e8e8e;
+}
+.kho1 {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px auto;
+  border-width: 1px ;
+  border-style: solid;
+  border-color: #8892aa;
+  padding: 10px;
+}
+.kho1 h4 {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+  font-weight: bolder;
+  font-style: italic;
+  color: #d5d5d5;
+  padding: 10px;
+}
+/* windows */
+.win1 {
+  border: #0e1d3e;
+  border-width: 1px;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg-800);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 12px;
+  grid-row: 1 / -1;
+  top: 0;
+  overflow-y: auto;
+}
+.hang-menu {
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
 }
 /* button */
 .btn {
@@ -280,7 +207,66 @@ footer {
       color: white;
       display: flex;
     }
+.btn1 {
+  display: flex;
+  color: #536490;
+  justify-content: left;
+  background-color: transparent;
+  border: transparent;
+  cursor: pointer;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+}
+
+.btn1:hover {
+  transform: translateX(5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  background-color: #0056b3;
+  color: #2d4156;
+}
+.btn1:focus {
+  transform: scale(0.95);
+  background-color: #802825;
+  color: #420000;
+  border: #791c1c;
+  border-radius: 10px;
+}
+.btn2 {
+  display: flex;
+  color: #060606ac;
+  justify-content: left;
+  background-color: #9d9d9d;
+  border: #161b2e;
+  cursor: pointer;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+}
 /*input*/
+.form-group {
+      display: flex;
+      gap: var(--space-2);
+     
+}
+.form-group2 {
+  display: flex;
+  gap: var(--space-2);
+  position: relative;
+}
+.form-group2 label {
+  color: #f7f7f7;
+  white-space: nowrap;
+  padding: 5px auto;
+}
+.form-group2 input {
+  background-color: #dddddd;
+  white-space: nowrap;
+  color: #000000;
+}
+
 input, select, textarea {
       width: 100%;
       padding: var(--space-3) var(--space-4);
@@ -390,117 +376,4 @@ input, select, textarea {
     .auth-footer a:hover { text-decoration: underline; }
 /*register-page*/
 
-/* card */
-.card {
-      color: #c6c6c6;
-      background: #003363;
-      border: var(--border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-6);
-      transition: var(--transition);
-    }
-.toast-container {
-      position: fixed;
-      bottom: var(--space-6);
-      right: var(--space-6);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      pointer-events: none; /* Click xuyên qua */
-    }
 
-.app-shell {
-      display: grid;
-      grid-template-columns: 240px 1fr;
-      grid-template-rows: auto 1fr;
-      min-height: 100vh;
-
-      /* Ẩn khi chưa đăng nhập */
-      display: none;
-    }
-    .app-shell.visible { display: grid; }
-
-    /* ============================================================
-       PHẦN 4: SIDEBAR
-    ============================================================ */
-    .sidebar {
-      grid-row: 1 / -1; /* Trải dài từ row 1 đến hết */
-      background: var(--bg-800);
-      border-right: var(--border);
-      padding: var(--space-6);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-    }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-4) 0 var(--space-6);
-      border-bottom: var(--border);
-      margin-bottom: var(--space-4);
-    }
-
-    .logo-icon {
-      width: 40px; height: 40px;
-      background: var(--red-600);
-      border-radius: var(--radius-md);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      box-shadow: var(--shadow-red);
-
-      /*
-        📚 HỌC: CSS Animation
-        Định nghĩa animation bằng @keyframes (ở dưới)
-        pulse 3s ease-in-out infinite → lặp mãi mãi
-      */
-      animation: pulse 3s ease-in-out infinite;
-    }
-
-    .logo-text {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-lg);
-      color: var(--text-100);
-      letter-spacing: -0.02em;
-    }
-
-    .logo-text span {
-      display: block;
-      font-family: 'DM Sans', sans-serif;
-      font-size: var(--text-xs);
-      font-weight: 400;
-      color: var(--text-300);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    /* Nav items trong sidebar */
-    .nav-label {
-      font-size: var(--text-xs);
-      font-weight: 600;
-      color: var(--text-500);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: var(--space-4) var(--space-3) var(--space-2);
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-3) var(--space-4);
-      border-radius: var(--radius-md);
-      color: var(--text-300);
-      cursor: pointer;
-      transition: var(--transition);
-      border: 1px solid transparent;
-      font-size: var(--text-sm);
-      font-weight: 500;
-      user-select: none;
-    }
