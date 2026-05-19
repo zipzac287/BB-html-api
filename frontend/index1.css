@@ -178,13 +178,27 @@
   min-height: 100vh;
   width: 100%;
   background: var(--bg-800);
-  display: flex;
+  display: none;
   flex-direction: column;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   font-size: 12px;
   grid-row: 1 / -1;
   top: 0;
   overflow-y: auto;
+}
+.active {
+  display: flex;
+}
+.win2 {
+  border: #f1f1f1;
+  border-color: #f1f1f1;
+  border-width: 2px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  border-style: solid;
+  min-height: 30%;
+  justify-content: space-evenly;
 }
 .hang-menu {
   display: flex;

@@ -89,7 +89,8 @@
       
     </div>
   </div>
-  <div class = "win1" id="menu1">
+  <div class = "win1 active" id="menu1">
+    <div class = "win2">
     <div class="hang-menu">
     <div class="form-group2">
     <label>Mã số người hiến</label>
@@ -108,11 +109,59 @@
       <option value="nam">Nam</option>
       <option value="nu">Nữ</option>
     </select>
-    <span class="dropdown-icon" style = "color : white">V</span>
+    <label>Nhóm máu</label>
+    <select name="abo">
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="O">O</option>
+      <option value="AB">AB</option>
+    </select>
+    <label>RhD</label>
+    <select name="rhd">
+      <option value="+">+</option>
+      <option value="-">-</option>
+    </select>
     </div>
   </div>
-</div>
+  <div class="hang-menu">
+    <div class="form-group2">
+    <label>Địa chỉ</label>
+    <input type="text" id="diachi-nhm"/>
+    <label>SĐT</label>
+    <input type="number" id="sdt-nhm"/>
+    <label>Email</label>
+    <input type="email" id="email-nhm"/>
 
+    </div>
+  </div>
+  <div class="hang-menu">
+    <div class="form-group2">
+      <label>Ghi chú</label>
+      <input type="text" style = " width: 500px;" />
+  </div>
+  </div>
+  <div class="hang-menu" style=" gap: 50px; padding: 50px auto;">
+    <button class="btn" onclick="luuttnhm()">Lưu thông tin</button>
+    <button class="btn" onclick="xoattnhm()">Xóa thông tin</button>
+    <button class="btn" onclick="capnhatttnhm()">Cập nhật thông tin</button>
+  </div>
+</div>
+<div class = "win2">
+  <div class="hang-menu">
+    <div class="form-group2">
+      <label>Mã số túi máu</label>
+      <input type ="text" id="mstm" placeholder="Mã số túi máu" />
+    </div>
+    <button class ="btn" onclick="timtuimau1()">Tìm túi máu</button>
+  </div>
+  <div class="hang-menu">
+    <label>Ngày hiến</label>
+    <input type ="date" id="ngayhien-tm"/>
+    <label>ABO</label>
+    <input type = "text" id="abo-tm" style = "width: 20px" />
+  </div>
+</div>
+</div>
 </body>
 <script>
 function showAuth(pageId) {
