@@ -80,7 +80,7 @@
     color: #333;
     display: flex;
     justify-content: center;
-    padding: 20px 10px;
+    
     min-height: 100vh;
     }
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
@@ -112,16 +112,22 @@
       top: 0;
       height: 100vh;
       overflow-y: auto;
-      width: 200px;
+      width: 250px;
 
 }
 .menu-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
+      justify-content: center;
+      width: 100%;
       border-width: 1px ;
       border-style: solid;
       border-color: #8892aa;
-      padding: 10px;
-      padding-right: 150px;
+      min-height: 150px;
+      /*padding: 10px;
+      padding-right: 150px;*/
     }
 
     .menu-icon {
@@ -130,7 +136,6 @@
       border-radius: var(--radius-lg);
       display: flex; align-items: center; justify-content: center;
       font-size: 28px;
-      margin: 0 auto var(--space-4);
       box-shadow: var(--shadow-red);
       animation: pulse 3s ease-in-out infinite;
     }
@@ -167,8 +172,9 @@
 }
 /* windows */
 .win1 {
-  border: #0e1d3e;
-  border-width: 1px;
+  border: #e6e6e6;
+  border-width: 2px;
+  border-color: #bebebe;
   min-height: 100vh;
   width: 100%;
   background: var(--bg-800);
@@ -183,7 +189,8 @@
 .hang-menu {
   display: flex;
   align-items: center;
-  min-height: 100vh;
+  min-height: 10px;
+  margin: 5px;
 }
 /* button */
 .btn {
@@ -267,9 +274,9 @@
   color: #000000;
 }
 
-input, select, textarea {
-      width: 100%;
-      padding: var(--space-3) var(--space-4);
+input, textarea {
+      width: fit-content;
+      padding: 1px;
       background: var(--bg-600);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: var(--radius-md);
@@ -280,6 +287,18 @@ input, select, textarea {
       appearance: none;
       outline: none;
     }
+select {
+  width: fit-content;
+  padding: 1px;
+  background: #f4f4f4;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #000000;
+  font-size: var(--text-sm);
+  font-family: 'DM Sans', sans-serif;
+  transition: var(--transition);
+  appearance: none;
+  outline: none;
+}
 /*card*/
 .card {
       background: var(--bg-800);

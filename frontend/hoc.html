@@ -99,9 +99,16 @@
   </div>
   <div class="hang-menu">
     <div class="form-group2">
-    <label>Mã số người hiến</label>
-    <input type="text" id="ms-nh" placeholder="Nhập MS người hiến máu" />
-    <button class = "btn" onclick="findms()">Tìm thông tin</button>
+    <label>Họ và tên</label>
+    <input type="text" id="hoten-nhm"/>
+    <label>Năm sinh</label>
+    <input type="date" id="ngaysinh-nhm"/>
+    <label>Giới tính</label>
+    <select name="sex">
+      <option value="nam">Nam</option>
+      <option value="nu">Nữ</option>
+    </select>
+    <span class="dropdown-icon" style = "color : white">V</span>
     </div>
   </div>
 </div>
@@ -110,7 +117,7 @@
 <script>
 function showAuth(pageId) {
   document.querySelectorAll('.auth-page').forEach(p => p.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
+  document.getElementById(pageId).classList.add('hien');
 }
 function showpage(pageId) {
   document.querySelectorAll('.kho1').forEach(p => p.classList.remove('hien'));
