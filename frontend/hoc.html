@@ -146,19 +146,29 @@
     <button class="btn" onclick="capnhatttnhm()">Cập nhật thông tin</button>
   </div>
 </div>
-<div class = "win2">
+<div class = "win2" style="min-height: 70%;">
   <div class="hang-menu">
     <div class="form-group2">
       <label>Mã số túi máu</label>
       <input type ="text" id="mstm" placeholder="Mã số túi máu" />
-    </div>
     <button class ="btn" onclick="timtuimau1()">Tìm túi máu</button>
+    </div>  
   </div>
   <div class="hang-menu">
+    <div class="form-group2">
     <label>Ngày hiến</label>
     <input type ="date" id="ngayhien-tm"/>
     <label>ABO</label>
-    <input type = "text" id="abo-tm" style = "width: 20px" />
+    <input type = "text" id="abo-tm" style = "width: 40px; color: #02701d" value ="" readonly />
+    <label>RhD</label>
+    <input type = "text" id="rhd-tm" style = "width: 40px; color: #02701d" value ="" readonly />
+    <label>Thể tích túi</label>
+    <input type="number" id="v-tm" style="width: 80px;  color: #02701d" value ="" readonly />
+    <label>ml</label>
+    <label>Mã số tube</label>
+    <input type = "text" id="mstube-tm" style = "width: 150px; color: #02701d" value ="" readonly />
+    
+  </div>
   </div>
 </div>
 </div>

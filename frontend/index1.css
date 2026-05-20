@@ -199,12 +199,14 @@
   border-style: solid;
   min-height: 30%;
   justify-content: space-evenly;
+  width: 100%;
 }
 .hang-menu {
   display: flex;
   align-items: center;
   min-height: 10px;
   margin: 5px;
+  color: white;
 }
 /* button */
 .btn {
