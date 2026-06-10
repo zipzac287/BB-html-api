@@ -1,0 +1,6 @@
+MonggoDB
+User: zipzac287_db_user
+password: AA2Vlh4nDASzjXbR
+
+uri: mongodb+srv://zipzac287_db_user:AA2Vlh4nDASzjXbR@cluster0.a7gitm4.mongodb.net/?appName=Cluster0
+not srv: "mongodb://zipzac287_db_user:AA2Vlh4nDASzjXbR@ac-m14akmn-shard-00-00.a7gitm4.mongodb.net:27017,ac-m14akmn-shard-00-01.a7gitm4.mongodb.net:27017,ac-m14akmn-shard-00-02.a7gitm4.mongodb.net:27017/?ssl=true&replicaSet=atlas-mk90xo-shard-0&authSource=admin&appName=Cluster0"
