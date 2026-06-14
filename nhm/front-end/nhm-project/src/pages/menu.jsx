@@ -15,10 +15,19 @@ import {
 
 const Menu = () => {
   return (
+<div className="min-h-screen w-full relative">
+  {/* Radial Gradient Background from Top */}
+  <div
+    className="absolute inset-0 z-0"
+    style={{
+      background: "radial-gradient(125% 125% at 50% 10%, #fff 40%, #475569 100%)",
+    }}
+  />
+
     <SidebarProvider>
     <AppSidebar/>
     <SidebarInset>
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 relative z-10">
           <SidebarTrigger className="-ml-1" />
           <Separator
             orientation="vertical"
@@ -47,6 +56,7 @@ const Menu = () => {
     </SidebarInset>
 
     </SidebarProvider>
+</div>
   )
 }
 
