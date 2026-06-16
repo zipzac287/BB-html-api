@@ -48,7 +48,7 @@ export function LoginForm({
               <Field>
                 <Button>Đăng nhập</Button>
                 <FieldDescription className="text-center">
-                  Chưa có tài khoản? <a href="#">Đăng ký</a>
+                  Chưa có tài khoản? <a href="/signup">Đăng ký</a>
                 </FieldDescription>
               </Field>
             </FieldGroup>

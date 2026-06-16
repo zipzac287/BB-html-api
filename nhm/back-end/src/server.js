@@ -4,13 +4,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { run } from '../config/inventory.js';
-
+import authRoutes from './routes/authRoutes.js';
 
 
 
 const app = express();
+// middleware
 
 app.use(express.json());
+
+// public routes
+app.use('/api/auth',authRoutes);
+// privite routes
+
 
 app.use("/api",rootRouter);
 async function startSever() {

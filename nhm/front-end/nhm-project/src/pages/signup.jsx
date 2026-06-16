@@ -12,7 +12,7 @@ const Signup = () => {
     }}
   />
     <div className='min-h-screen flex p-20 relative z-10'>
-        <div className='w-full max-w-xl p-10 mx-auto'>
+        <div className='w-110 max-w-xl p-10 mx-auto'>
         <SignupForm />
         </div>
     </div>

@@ -15,7 +15,7 @@ const Login = () => {
   />
 
     <div className='min-h-screen flex w-full items-center justify-center relative z-10'>
-      <div className='w-full max-w-xl p-10 mx-auto space-y-6'>
+      <div className='w-110 max-w-xl p-10 mx-auto space-y-6'>
         <LoginForm />
       </div>
     </div>
