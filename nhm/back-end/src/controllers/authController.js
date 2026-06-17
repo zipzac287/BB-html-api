@@ -77,6 +77,22 @@ const authController = {
         } catch (error) {
             res.status(500).json({success:false,message: error.message});
         }
-    }
+    },
+        signOut: async (req,res) => {
+            try {
+            // lấy refreshtoken từ cookie
+            const token = req.cookie?.refreshToken;
+            if(token) {
+                 // lấy refreshtoken từ trong Db
+                await Session.deleteOne({refreshToken: token});
+            };          
+
+            // xóa cookie
+            res.clearCookie('refreshToken');
+            return res.status(204); 
+            } catch (error) {
+            res.status(500).json({success:false,message: error.message});
+            }
+        }
     };
     export default authController;

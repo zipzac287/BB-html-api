@@ -5,18 +5,21 @@ dotenv.config();
 
 import { run } from '../config/inventory.js';
 import authRoutes from './routes/authRoutes.js';
-
+import cookieParser from 'cookie-parser';
+import { protectedRoute } from '../config/middlewares/authMiddlewares.js';
+import userRoute from './routes/userRoutes.js';
 
 
 const app = express();
 // middleware
-
 app.use(express.json());
-
+app.use(cookieParser());
 // public routes
 app.use('/api/auth',authRoutes);
 // privite routes
 
+app.use(protectedRoute);
+app.use('/api/users', userRoute);
 
 app.use("/api",rootRouter);
 async function startSever() {
