@@ -6,11 +6,19 @@ dotenv.config();
 import { run } from '../config/inventory.js';
 import authRoutes from './routes/authRoutes.js';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import { protectedRoute } from '../config/middlewares/authMiddlewares.js';
 import userRoute from './routes/userRoutes.js';
 
 
 const app = express();
+// cấu hình cors cho phép gọi api giữa 2 server fe và be.
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+
 // middleware
 app.use(express.json());
 app.use(cookieParser());

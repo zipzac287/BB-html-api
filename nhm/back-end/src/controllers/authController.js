@@ -29,7 +29,7 @@ const authController = {
             hashedPassword
             });
             //return
-            return res.sendStatus(200).json({success:true, message:"Tạo tài khoản thành công"});
+            return res.status(200).json({success:true, message:"Tạo tài khoản thành công"});
         } catch (error) {
             res.status(500).json({success:false,message: error.message});
         }

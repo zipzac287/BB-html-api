@@ -2,6 +2,8 @@ import React from 'react'
 import { SignupForm } from '@/components/signup-form'
 
 const Signup = () => {
+  
+
   return (
     <div className="min-h-screen w-full relative">
   {/* Radial Gradient Background from Top */}
