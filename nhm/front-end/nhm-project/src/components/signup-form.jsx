@@ -11,7 +11,19 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { GalleryVerticalEndIcon } from "lucide-react"
-import { authApi } from "@/api/authApi.js";
+import { useAuthStore } from "@/stores/useAuthStore";
+import {z} from 'zod';
+import { useNavigate } from "react-router-dom";
+
+const signupSchema = z.object({
+  username: z.string().min(3,'Tên đăng nhập có ít nhất 3 ký tự'),
+  password: z
+    .string()
+    .min(6, 'Mật khẩu phải có 6 ký tự trở lên')
+    .regex(/[A-Z]/,'Mật khẩu phải có ký tự in hoa')
+    .regex(/[a-z]/,'Mật khẩu phải có ký tự in thường')
+    .regex(/[@#$%!&?*]/,'Mật khẩu phải có ký tự đặc biệt')
+});
 
 export function SignupForm({
   className,
@@ -21,8 +33,10 @@ export function SignupForm({
     username: '',
     password: ''
   });
-  const [err, seterr] = useState('');
-  const [loading,setLoading] = useState(false);
+  const [err, seterr] = useState([]);
+  const { signUp, loading } = useAuthStore();
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const {name, value} = e.target;
@@ -31,25 +45,23 @@ export function SignupForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
     seterr('');
-    
+  
+  const validation = signupSchema.safeParse(formData);
+  if (!validation.success) {
+    const fieldErrors = validation.error.flatten().fieldErrors;
+    const allError = Object.values(fieldErrors).flat();
+    seterr(allError);
+    return;
+  }
   try {
-    
-    setLoading(true);
-
-    const result = await authApi.signup({
-      username: formData.username,
-      password: formData.password
-    })
-    alert(result.message || "Đăng ký thành công");
-
+    const result = await signUp(validation.data);
+    navigate('/login');
   } catch (error) {
-    console.error(`Chi tiết lỗi API:`, error.response?.data);
-    const errMassage = error.response?.data?.message || "Đăng ký thất bại!";
-    alert(errMassage);
-  } finally {
-    setLoading(false);
+    const errorMessage = error.response?.data?.message || "Đăng ký thất bại";
+    seterr(errorMessage)
   }
 };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <form onSubmit={handleSubmit}>
@@ -90,6 +102,11 @@ export function SignupForm({
           <Field>
             <Button type="submit">Tạo tài khoản</Button>
           </Field>
+          {/* 🔴 Nơi hiển thị thông báo lỗi của Zod hoặc của Backend */}
+      {err?.length>0 && (
+        <div className="bg-red-50 border border-red-200 p-3 rounded-lg text-red-600 text-sm font-medium text-left whitespace-pre-line space-y-1um">
+        ⚠️ {err.join('\n⚠️ ')}
+        </div>)}
           <FieldSeparator>hoặc</FieldSeparator>
         </FieldGroup>
       </form>

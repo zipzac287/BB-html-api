@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
 const ACCESS_TOKEN_TTL = '30m';
-const REFREST_TOKEN_TTL = 14*24*60*60*1000;
+const REFRESH_TOKEN_TTL = 14*24*60*60*1000;
 
 const authController = {
     signUp: async (req,res) => {
@@ -63,17 +63,20 @@ const authController = {
             await Session.create({
                 userId: user._id,
                 refreshToken: refreshToken,
-                expiresAt: new Date(Date.now() + REFREST_TOKEN_TTL),
+                expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL),
             });
             // trả refresh token về cookies
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: REFREST_TOKEN_TTL,
+                maxAge: REFRESH_TOKEN_TTL,
             });
             // trả access token về trong res
-            res.status(200).json({success: true, message:`User ${username} đăng nhập thành công`, accessToken});
+            res.status(200).json({success: true, message:`User ${username} đăng nhập thành công`, accessToken,
+                user: {
+        _id: user._id,
+        username: user.username}});
         } catch (error) {
             res.status(500).json({success:false,message: error.message});
         }

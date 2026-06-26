@@ -1,9 +1,10 @@
-import React from 'react'
+import React,{ useEffect } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SearchForm } from '@/components/search-form'
 import { SidebarInset, SidebarProvider,SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
-
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useNavigate } from 'react-router-dom';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,6 +15,25 @@ import {
 } from "@/components/ui/breadcrumb"
 
 const Menu = () => {
+  const { user, loading } = useAuthStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Nếu không có user trong Zustand (nghĩa là chưa đăng nhập hoặc F5 mất RAM)
+    if (!user && !loading) {
+      console.log("Bị đá về login vì user là:", user, "và loading là:", loading);
+      navigate('/login'); 
+    }
+  }, [user,loading, navigate]);
+
+  // Trong lúc chờ chuyển hướng, không vẽ giao diện ra để tránh bị lộ thông tin (nhấp nháy)
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p>Đang xác thực quyền truy cập...</p>
+      </div>
+    );
+  }
   return (
 <div className="min-h-screen w-full relative">
   {/* Radial Gradient Background from Top */}
