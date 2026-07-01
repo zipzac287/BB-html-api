@@ -45,7 +45,7 @@ export function LoginForm({
     // goi backend để signin
     try {
       await signIn(data);
-    navigate("/menu"); 
+      navigate("/menu"); 
     } catch (error) {
       console.error("Đăng nhập thất bại tại Form:", error);
     }
@@ -106,6 +106,7 @@ export function LoginForm({
                 >
                   Đăng nhập
                   </Button>
+                
                 <FieldDescription className="text-center">
                   Chưa có tài khoản? <a href="/signup">Đăng ký</a>
                 </FieldDescription>

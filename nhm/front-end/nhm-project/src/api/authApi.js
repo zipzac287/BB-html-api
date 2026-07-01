@@ -8,5 +8,6 @@ export const authApi = {
             withCredentials: true
         });
         return res.data;
-    }
+    },
+    signin: async ()
 };

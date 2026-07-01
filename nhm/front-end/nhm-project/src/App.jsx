@@ -8,11 +8,12 @@ function App() {
   return (
     <>
     <BrowserRouter>
-      
+      {/*auth*/} 
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/menu"  element={<Menu />} />
         <Route path="/signup" element={<Signup />} />
+      {/*menu-nguoi-hien-mau*/}
       </Routes>
     </BrowserRouter>
     </>

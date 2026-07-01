@@ -18,22 +18,6 @@ const Menu = () => {
   const { user, loading } = useAuthStore();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Nếu không có user trong Zustand (nghĩa là chưa đăng nhập hoặc F5 mất RAM)
-    if (!user && !loading) {
-      console.log("Bị đá về login vì user là:", user, "và loading là:", loading);
-      navigate('/login'); 
-    }
-  }, [user,loading, navigate]);
-
-  // Trong lúc chờ chuyển hướng, không vẽ giao diện ra để tránh bị lộ thông tin (nhấp nháy)
-  if (loading || !user) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Đang xác thực quyền truy cập...</p>
-      </div>
-    );
-  }
   return (
 <div className="min-h-screen w-full relative">
   {/* Radial Gradient Background from Top */}

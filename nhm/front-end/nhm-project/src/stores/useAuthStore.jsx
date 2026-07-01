@@ -4,8 +4,6 @@ import axios from 'axios';
 import { persist } from 'zustand/middleware';
 import { authService } from '@/services/authService';
 
-const BASE_URL = 'http://localhost:5001/api/auth';
-
 
 export const useAuthStore = create(
     persist(
@@ -15,17 +13,18 @@ export const useAuthStore = create(
     loading: false,
     error: null,
 
-    signUp: async ({username,password}) => {
+    signUp: async (data) => {
 
         try {
             set({loading: true, error: null});
 
-            await authService.signUp(username,password);
+            await authService.signUp(data);
 
             toast.success('Đăng ký thành công!')
         } catch (error) {
             console.error(`Chi tiết lỗi API:`, error.response?.data);
-            toast.error('Lỗi khi đăng ký tài khoản')
+            toast.error('Lỗi khi đăng ký tài khoản');
+            throw error;
         } finally {
             set({ loading: false});
         }
@@ -34,27 +33,40 @@ export const useAuthStore = create(
         
         try {
             set({loading: true, error: null});
-            const {accessToken} = await authService.signIn(credentials);
-            set({accessToken:res.data.accessToken,user: res.data.user, loading:false});
+            const data = await authService.signIn(credentials);
+            set({
+                accessToken: data.accessToken,
+                user: data.user,
+                loading:false
+            });
             
         } catch (error) {
             console.error(`Chi tiết lỗi API:`, error.response?.data);
-            toast.error('Lỗi khi đăng nhập tài khoản')
+            const errorMsg = error.response?.data?.message || `Lỗi khi đăng nhập`;
+            toast.error(errorMsg)
             set ({
                 loading: false,
                 error: error.response?.data?.message
-            })
+            });
+            throw error;
         }
     },
     signOut: async () => {
-        set({loading: true});
+        
         try {
-            await axios.post(`${BASE_URL}/signout`, {}, {
-                withCredentials: true,
-            });
-            set({user: null,loading: false,error: null})
+            set({loading: true});
+            await authService.signOut();
+        
         } catch (error) {
             console.error(`Chi tiết lỗi API:`, error.response?.data);
+    } finally {
+        set({
+            user: null,
+            accessToken: null,
+            loading: false,
+            error: null
+        });
+        toast.success("Đã đăng xuất tài khoản!")
     }
     },
     }),

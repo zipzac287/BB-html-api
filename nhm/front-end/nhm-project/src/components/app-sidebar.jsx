@@ -20,201 +20,123 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { GalleryVerticalEndIcon, PlusIcon, MinusIcon } from "lucide-react"
+import { Link,useLocation } from "react-router"
 
 // This is sample data.
 const data = {
   navMain: [
-    {
-      title: "Getting Started",
-      url: "#",
+   {
+      title: "Người hiến máu",
+      url: "/nguoi-hien-mau",
       items: [
-        {
-          title: "Installation",
-          url: "#",
-        },
-        {
-          title: "Project Structure",
-          url: "#",
-        },
+        { title: "Nhập thông tin người hiến", url: "/nguoi-hien-mau/nhap-thong-tin" },
+        { title: "Tìm thông tin người hiến", url: "/nguoi-hien-mau/tim-thong-tin" },
+        { title: "Thống kê người hiến", url: "/nguoi-hien-mau/thong-ke" },
       ],
     },
     {
-      title: "Build Your Application",
-      url: "#",
+      title: "Quản lý kho thô",
+      url: "/quan-ly-kho-tho",
       items: [
-        {
-          title: "Routing",
-          url: "#",
-        },
-        {
-          title: "Data Fetching",
-          url: "#",
-          isActive: true,
-        },
-        {
-          title: "Rendering",
-          url: "#",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
-        {
-          title: "Styling",
-          url: "#",
-        },
-        {
-          title: "Optimizing",
-          url: "#",
-        },
-        {
-          title: "Configuring",
-          url: "#",
-        },
-        {
-          title: "Testing",
-          url: "#",
-        },
-        {
-          title: "Authentication",
-          url: "#",
-        },
-        {
-          title: "Deploying",
-          url: "#",
-        },
-        {
-          title: "Upgrading",
-          url: "#",
-        },
-        {
-          title: "Examples",
-          url: "#",
-        },
+        { title: "Nhập trực tiếp", url: "/quan-ly-kho-tho/nhap-truoc-tiep" },
+        { title: "Chiết tách", url: "/quan-ly-kho-tho/chiet-tach" },
+        { title: "Sàng lọc", url: "/quan-ly-kho-tho/sang-loc" },
+        { title: "Hủy phế thải", url: "/quan-ly-kho-tho/huy-phe-thai" },
+        { title: "Thống kê", url: "/quan-ly-kho-tho/thong-ke" },
+        { title: "Tra cứu túi máu", url: "/quan-ly-kho-tho/tra-cuu" },
       ],
     },
     {
-      title: "API Reference",
-      url: "#",
+      title: "Quản lý kho sạch",
+      url: "/quan-ly-kho-sach",
       items: [
-        {
-          title: "Components",
-          url: "#",
-        },
-        {
-          title: "File Conventions",
-          url: "#",
-        },
-        {
-          title: "Functions",
-          url: "#",
-        },
-        {
-          title: "next.config.js Options",
-          url: "#",
-        },
-        {
-          title: "CLI",
-          url: "#",
-        },
-        {
-          title: "Edge Runtime",
-          url: "#",
-        },
+        { title: "Nhập trực tiếp", url: "/quan-ly-kho-sach/nhap-truoc-tiep" },
+        { title: "Nhập túi máu sạch", url: "/quan-ly-kho-sach/nhap-tui-mau-sach" },
+        { title: "Chiết tách", url: "/quan-ly-kho-sach/chiet-tach" },
+        { title: "Ghép túi máu/Cập nhật loại CP", url: "/quan-ly-kho-sach/ghep-tui-mau" },
+        { title: "Hủy máu", url: "/quan-ly-kho-sach/huy-mau" },
+        { title: "Thống kê", url: "/quan-ly-kho-sach/thong-ke" },
+        { title: "Kiểm kê kho", url: "/quan-ly-kho-sach/kiem-ke" },
+        { title: "Tìm túi máu", url: "/quan-ly-kho-sach/tim-tui-mau" },
+        { title: "Cấp phát", url: "/quan-ly-kho-sach/cap-phat" },
       ],
     },
     {
-      title: "Architecture",
-      url: "#",
+      title: "Quản lý bệnh nhân",
+      url: "/quan-ly-benh-nhan",
       items: [
-        {
-          title: "Accessibility",
-          url: "#",
-        },
-        {
-          title: "Fast Refresh",
-          url: "#",
-        },
-        {
-          title: "Next.js Compiler",
-          url: "#",
-        },
-        {
-          title: "Supported Browsers",
-          url: "#",
-        },
-        {
-          title: "Turbopack",
-          url: "#",
-        },
+        { title: "Nhập thông tin bệnh nhân", url: "/quan-ly-benh-nhan/nhap-thong-tin" },
+        { title: "Xét nghiệm cấp phát", url: "/quan-ly-benh-nhan/xet-nghiem" },
+        { title: "Thống kê", url: "/quan-ly-benh-nhan/thong-ke" },
+        { title: "Tìm thông tin bệnh nhân", url: "/quan-ly-benh-nhan/tim-thong-tin" },
       ],
     },
     {
-      title: "Community",
-      url: "#",
+      title: "Cấu hình",
+      url: "/cau-hinh",
       items: [
-        {
-          title: "Contribution Guide",
-          url: "#",
-        },
+        { title: "Bổ sung tài khoản", url: "/cau-hinh/bo-sung-tai-khoan" },
+        { title: "Cấu hình CPM", url: "/cau-hinh/cau-hinh-cpm" },
       ],
     },
   ],
-}
+};
 
 export function AppSidebar({
   ...props
 }) {
+  const location = useLocation();
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div
-                  className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <GalleryVerticalEndIcon className="size-4" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Documentation</span>
-                  <span className="">v1.0.0</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <SearchForm />
+      <div className="flex flex-col gap-0.5 leading-none">
+        <span className="font-medium">BloodBank App</span>
+        <span className="">v1.0.0</span>
+      </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {data.navMain.map((item, index) => (
-              <Collapsible key={item.title} defaultOpen={index === 1} className="group/collapsible">
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton>
-                      {item.title}{" "}
-                      <PlusIcon className="ml-auto group-data-[state=open]/collapsible:hidden" />
-                      <MinusIcon className="ml-auto group-data-[state=closed]/collapsible:hidden" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  {item.items?.length ? (
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.items.map((item) => (
-                          <SidebarMenuSubItem key={item.title}>
-                            <SidebarMenuSubButton asChild isActive={item.isActive}>
-                              <a href={item.url}>{item.title}</a>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  ) : null}
-                </SidebarMenuItem>
-              </Collapsible>
-            ))}
+            {data.navMain.map((item, index) => {
+              // Tự động mở danh mục cha nếu có phần tử con đang được active
+              const hasActiveChild = item.items?.some(sub => location.pathname === sub.url);
+
+              return (
+                <Collapsible 
+                  key={item.title} 
+                  defaultOpen={hasActiveChild || index === 0} 
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton>
+                        {item.title}
+                        <PlusIcon className="ml-auto group-data-[state=open]/collapsible:hidden" />
+                        <MinusIcon className="ml-auto group-data-[state=closed]/collapsible:hidden" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    
+                    {item.items?.length ? (
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.items.map((subItem) => (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton 
+                                asChild 
+                                isActive={location.pathname === subItem.url} // Active dựa trên URL thực tế
+                              >
+                                {/* Dùng Link của react-router-dom */}
+                                <Link to={subItem.url}>{subItem.title}</Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    ) : null}
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

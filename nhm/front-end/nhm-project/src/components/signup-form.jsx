@@ -103,10 +103,10 @@ export function SignupForm({
             <Button type="submit">Tạo tài khoản</Button>
           </Field>
           {/* 🔴 Nơi hiển thị thông báo lỗi của Zod hoặc của Backend */}
-      {err?.length>0 && (
-        <div className="bg-red-50 border border-red-200 p-3 rounded-lg text-red-600 text-sm font-medium text-left whitespace-pre-line space-y-1um">
-        ⚠️ {err.join('\n⚠️ ')}
-        </div>)}
+      {err?.length>0 &&
+        <div className="bg-red-50 border border-red-200 p-3 rounded-lg text-red-600 text-sm font-medium text-left whitespace-pre-line space-y-1">
+        ⚠️ {err}
+        </div>}
           <FieldSeparator>hoặc</FieldSeparator>
         </FieldGroup>
       </form>
