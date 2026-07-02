@@ -7,41 +7,52 @@ import { data } from './components/app-sidebar';
 
 // 2. Import tất cả các Pages (Giao diện tính năng)
 import NhapNguoiHien from "./pages/nhapnguoihien";
+import { useAuthStore } from './stores/useAuthStore';
+import Dashboard from './pages/dashboard';
 // 3. Tạo bảng ánh xạ: URL nào -> Component đó
 const componentMapping = {
-  "/nguoi-hien-mau/nhap-thong-tin": <NhapNguoiHien />
+  "/nguoi-hien-mau/nhap-thong-tin": <NhapNguoiHien />,
+  "/tong-quan/dashboard": <Dashboard />
 };
 
 function App() {
+  const { user } = useAuthStore();
   return (
-    <>
     <BrowserRouter>
-      {/*auth*/} 
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/"  element={<Menu />}>
-        
-      {/*menu-nguoi-hien-mau*/}
-        {/* Khi người dùng vào trang chủ "/", tự động chuyển hướng sang trang nhập thông tin */}
-          <Route index element={<Navigate to="/nguoi-hien-mau/nhap-thong-tin" replace />} />
-
-          {/* LƯU Ý 2: Đây là các trang con (Sub-routes). 
-              Vì nó nằm lồng bên trong Route Cha (path="/") nên khi chạy, 
-              React Router sẽ giữ nguyên Sidebar của Menu và chỉ nạp ruột trang này vào ô <Outlet />.
-          
-              Mẹo: Ở đây thuộc tính 'path' bạn KHÔNG để dấu "/" ở đầu chuỗi nhé.
-          */}
-          <Route path="nguoi-hien-mau/nhap-thong-tin" element={<NhapNguoiHien />}/>
-          
-          {/* Sau này thêm các trang khác thì viết tiếp ở đây, vẫn nằm TRONG thẻ đóng </Route> của Menu */}
-          {/* <Route path="quan-ly-kho-tho/chiet-tach" element={<ChietTachKhoTho />} /> */}
-        </Route>
-        {/* Trang 404 nằm ngoài hệ thống nếu cần */}
-        <Route path="*" element={<div>Trang không tồn tại</div>} />
-        <Route path="/signup" element={<Signup />} />
+        {user ? (
+          /* KHỐI KHI ĐÃ ĐĂNG NHẬP */
+          <>
+            <Route path="/" element={<Navigate to="/tong-quan/dashboard" replace />} />
+            <Route path="/login" element={<Navigate to="/tong-quan/dashboard" replace />} />
+            
+            <Route element={<Menu />}>
+              {data?.navMain?.map((parent) => 
+                parent.items?.map((child) => (
+                  <Route
+                    key={child.url}
+                    path={child.url.replace(/^\//, "")}
+                    element={componentMapping[child.url] || <div>Đang phát triển...</div>}
+                  />
+                ))
+              )}
+            </Route>
+            {/* Nếu đang đăng nhập mà gõ bậy bạ, đẩy về dashboard */}
+            <Route path="*" element={<Navigate to="/tong-quan/dashboard" replace />} />
+          </>
+        ) : (
+          /* KHỐI KHI CHƯA ĐĂNG NHẬP */
+          <>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* THẦN CHÚ QUAN TRỌNG: Khi user = null, bất kể URL hiện tại là gì 
+                (kể cả /tong-quan/dashboard), nó sẽ rơi vào dấu * này và bị ép về /login */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        )}
       </Routes>
     </BrowserRouter>
-    </>
   );
 }
 

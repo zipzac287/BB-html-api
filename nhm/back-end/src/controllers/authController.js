@@ -85,16 +85,23 @@ const authController = {
             try {
             // lấy refreshtoken từ cookie
             const token = req.cookie?.refreshToken;
-            if(token) {
+            if (token) {
                  // lấy refreshtoken từ trong Db
                 await Session.deleteOne({refreshToken: token});
             };          
 
             // xóa cookie
-            res.clearCookie('refreshToken');
+            res.clearCookie('refreshToken', {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict'
+            });
+
             return res.status(204); 
+
             } catch (error) {
-            res.status(500).json({success:false,message: error.message});
+
+            return res.status(500).json({success:false,message: error.message});
             }
         }
     };

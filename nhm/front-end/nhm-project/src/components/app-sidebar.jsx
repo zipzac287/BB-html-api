@@ -18,14 +18,30 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
-import { GalleryVerticalEndIcon, PlusIcon, MinusIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { GalleryVerticalEndIcon, PlusIcon, MinusIcon, LogOut, KeyRound, ChevronUp } from "lucide-react";
 import { Link,useLocation } from "react-router-dom";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 // This is sample data.
 export const data = {
   navMain: [
-   {
+    {
+      title: "Tổng quan",
+      url: "/tong-quan",
+      items: [
+        { title: "Dashboard", url: "/tong-quan/dashboard"},
+      ]
+    },
+    {
       title: "Người hiến máu",
       url: "/nguoi-hien-mau",
       items: [
@@ -86,6 +102,19 @@ export function AppSidebar({
   ...props
 }) {
   const location = useLocation();
+  const { user, signOut } = useAuthStore();
+
+  const handleSignOut = async (e) => {
+    e.preventDefault();
+    if (window.confirm("Bạn có muốn đăng xuất không?")) {
+      try {
+        await signOut();
+      } catch (error) {
+        console.error(error);
+      }
+      
+    }
+  };
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -140,6 +169,53 @@ export function AppSidebar({
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t border-slate-200/60 p-2">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+              size="lg"
+              className="w-full justify-between hover:bg-slate-100/80 data-[state=open]:bg-slate-100 transition-colors">
+                <div className="flex item-center gap-2.5 text-left">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-600 text-sm font-bold text-white uppercase">
+                    {user?.name ? user.name.charAt(0) : "U" }
+                  </div>
+                  <div className="grid flex-1 text-sm leading-right">
+                    <span className="truncate font-semibold text-slate-700">
+                      {user?.name || "Tài khoản"}
+                    </span>
+                  </div>
+                </div>
+                <ChevronUp className="ml-auto h-4 w-4 text-slate-400 transition-transform group-data-[state=open]:rotate-180" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              side="top"
+              align="end"
+              className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl p-1 shadow-md border border-slate-200 bg-white"
+            >
+              <DropdownMenuItem asChild className="focus:bg-slate-50 rounded-lg cursor-pointer">
+                  <Link to="/tai-khoan/doi-mat-khau" className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600">
+                    <KeyRound className="h-4 w-4 text-slate-400" />
+                    <span>Đổi mật khẩu</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-1 bg-slate-100" />
+              <DropdownMenuItem 
+                  onClick={handleSignOut}
+                  className="focus:bg-red-50 text-red-600 focus:text-red-600 rounded-lg cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 px-3 py-2 text-sm font-medium w-full">
+                    <LogOut className="h-4 w-4" />
+                    <span>Đăng xuất</span>
+                  </div>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

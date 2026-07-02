@@ -52,23 +52,27 @@ export const useAuthStore = create(
         }
     },
     signOut: async () => {
-        
-        try {
-            set({loading: true});
-            await authService.signOut();
-        
-        } catch (error) {
-            console.error(`Chi tiết lỗi API:`, error.response?.data);
-    } finally {
-        set({
-            user: null,
-            accessToken: null,
-            loading: false,
-            error: null
-        });
-        toast.success("Đã đăng xuất tài khoản!")
-    }
-    },
+    set({
+    user: null,
+    accessToken: null,
+    loading: false,
+    error: null
+  });
+
+  // 2. XÓA SẠCH BỘ NHỚ LƯU TRỮ CỨNG DƯỚI LOCALSTORAGE
+  try {
+    localStorage.removeItem('nganhangmau-auth-storage'); // Cách xóa trực tiếp, an toàn tuyệt đối không lo lỗi thư viện
+  } catch (e) {
+    console.error("Lỗi xóa localStorage:", e);
+  }
+
+  // 3. CHẠY NGẦM GỌI API SANG BACKEND (DÙ THÀNH CÔNG HAY THẤT BẠI THÌ USER ĐÃ THOÁT)
+  try {
+    await authService.signOut();
+  } catch (error) {
+    console.error(`Chi tiết lỗi API SignOut ngầm:`, error.response?.data);
+  }
+},
     }),
     {
         name: 'nganhangmau-auth-storage', // Tên key lưu trữ dưới LocalStorage của trình duyệt
