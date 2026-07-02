@@ -19,11 +19,11 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { GalleryVerticalEndIcon, PlusIcon, MinusIcon } from "lucide-react"
-import { Link,useLocation } from "react-router"
+import { GalleryVerticalEndIcon, PlusIcon, MinusIcon } from "lucide-react";
+import { Link,useLocation } from "react-router-dom";
 
 // This is sample data.
-const data = {
+export const data = {
   navMain: [
    {
       title: "Người hiến máu",
@@ -104,7 +104,7 @@ export function AppSidebar({
               return (
                 <Collapsible 
                   key={item.title} 
-                  defaultOpen={hasActiveChild || index === 0} 
+                  defaultOpen={hasActiveChild} 
                   className="group/collapsible"
                 >
                   <SidebarMenuItem>
