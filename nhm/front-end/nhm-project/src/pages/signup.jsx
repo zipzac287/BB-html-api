@@ -1,6 +1,6 @@
 import React from 'react'
 import { SignupForm } from '@/components/signup-form'
-
+import { Toaster } from 'sonner'
 const Signup = () => {
   
   return (
@@ -14,7 +14,7 @@ const Signup = () => {
   />
     <div className='min-h-screen flex p-20 relative z-10'>
         <div className='w-110 max-w-xl p-10 mx-auto'>
-          <Toaster position="top-right" richColors />
+        <Toaster position="top-right" richColors />
         <SignupForm />
         </div>
     </div>

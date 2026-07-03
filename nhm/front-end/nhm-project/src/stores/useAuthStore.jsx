@@ -23,7 +23,8 @@ export const useAuthStore = create(
             toast.success('Đăng ký thành công!')
         } catch (error) {
             console.error(`Chi tiết lỗi API:`, error.response?.data);
-            toast.error('Lỗi khi đăng ký tài khoản');
+             const errorMsg = error.response?.data?.message || `Lỗi khi đăng ký`;
+            toast.error(errorMsg)
             throw error;
         } finally {
             set({ loading: false});
