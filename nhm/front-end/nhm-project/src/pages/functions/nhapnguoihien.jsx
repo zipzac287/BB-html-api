@@ -39,7 +39,22 @@ export default function NhapNguoiHien() {
           <h3 className="text-xs font-bold text-red-600 uppercase tracking-wider">1. Thông tin cá nhân</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 col-span-1">
+              <label className="text-xs font-semibold text-slate-600">Số CCCD / CMND <span className="text-red-500">*</span></label>
+              <input
+                required
+                type="text"
+                name="cccd"
+                value={formData.cccd}
+                onChange={handleChange}
+                placeholder="001xxxxxxxx"
+                className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+              />
+            </div>
+          </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                        <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-600">Họ và tên <span className="text-red-500">*</span></label>
               <input
                 required
@@ -76,19 +91,6 @@ export default function NhapNguoiHien() {
                 <option value="Nữ">Nữ</option>
                 <option value="Khác">Khác</option>
               </select>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-600">Số CCCD / CMND <span className="text-red-500">*</span></label>
-              <input
-                required
-                type="text"
-                name="cccd"
-                value={formData.cccd}
-                onChange={handleChange}
-                placeholder="001xxxxxxxx"
-                className="flex h-9 w-full rounded-lg border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
-              />
             </div>
 
             <div className="flex flex-col gap-1.5">

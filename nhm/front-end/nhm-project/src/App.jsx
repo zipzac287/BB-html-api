@@ -3,12 +3,13 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/login';
 import Menu from './pages/menu';
 import Signup from './pages/signup';
+import Test from './pages/test';
 import { data } from './components/app-sidebar';
 
 // 2. Import tất cả các Pages (Giao diện tính năng)
-import NhapNguoiHien from "./pages/nhapnguoihien";
+import NhapNguoiHien from "./pages/functions/nhapnguoihien";
 import { useAuthStore } from './stores/useAuthStore';
-import Dashboard from './pages/dashboard';
+import Dashboard from './pages/functions/dashboard';
 // 3. Tạo bảng ánh xạ: URL nào -> Component đó
 const componentMapping = {
   "/nguoi-hien-mau/nhap-thong-tin": <NhapNguoiHien />,
@@ -45,7 +46,7 @@ function App() {
           <>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            
+            <Route path="/test" element={<Test />} />
             {/* THẦN CHÚ QUAN TRỌNG: Khi user = null, bất kể URL hiện tại là gì 
                 (kể cả /tong-quan/dashboard), nó sẽ rơi vào dấu * này và bị ép về /login */}
             <Route path="*" element={<Navigate to="/login" replace />} />

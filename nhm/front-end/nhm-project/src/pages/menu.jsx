@@ -52,24 +52,10 @@ const Menu = () => {
     }}
   />
 
-   <SidebarProvider className="min-h-screen w-full flex items-stretch relative">
-      
-      {/* Khối hình nền Radial Gradient (Được đặt khéo léo để không che đè cấu trúc Flex) */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(125% 125% at 50% 10%, #fff 40%, #475569 100%)",
-        }}
-      />
-
-      {/* BƯỚC 2: Gọi Sidebar (Thành phần này sẽ đứng hiên ngang bên trái) */}
-      <AppSidebar className="relative z-20 shrink-0" />
-
-      {/* BƯỚC 3: Khối nội dung chính bên phải */}
-      <SidebarInset className="flex-1 flex flex-col bg-transparent relative z-10 min-w-0">
-        
-        {/* THANH HEADER */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white/60 backdrop-blur-sm relative z-20">
+    <SidebarProvider>
+    <AppSidebar/>
+    <SidebarInset className="bg-transparent">
+      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 relative z-10">
           <SidebarTrigger className="-ml-1" />
           <Separator
             orientation="vertical"
@@ -79,7 +65,7 @@ const Menu = () => {
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
                 <BreadcrumbLink asChild>
-                  <Link to={parentUrl}>{parentTitle}</Link>
+                <Link to={parentUrl}>{parentTitle}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
@@ -89,13 +75,11 @@ const Menu = () => {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-
-        {/* NỘI DUNG VIEW TRANG CON */}
-        <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto relative z-10">
+        <div className="flex flex-1 flex-col gap-4 p-4">
           <Outlet />
         </div>
+    </SidebarInset>
 
-      </SidebarInset>
     </SidebarProvider>
 </div>
   )
