@@ -128,8 +128,7 @@ export function AppSidebar({
           <SidebarMenu>
             {data.navMain.map((item, index) => {
               // Tự động mở danh mục cha nếu có phần tử con đang được active
-              const hasActiveChild = item.items?.some(sub => location.pathname === sub.url);
-
+              const hasActiveChild = item.items?.some(sub => location.pathname === sub.url);  
               return (
                 <Collapsible 
                   key={item.title} 
@@ -150,12 +149,18 @@ export function AppSidebar({
                         <SidebarMenuSub>
                           {item.items.map((subItem) => (
                             <SidebarMenuSubItem key={subItem.title}>
+                              
                               <SidebarMenuSubButton 
                                 asChild 
-                                isActive={location.pathname === subItem.url} // Active dựa trên URL thực tế
+                                className={`w-full justify-start ${
+                                  location.pathname === subItem.url
+                                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold text-purple-800"
+                                  : "text-muted-foreground"
+                                }`}
                               >
                                 {/* Dùng Link của react-router-dom */}
                                 <Link to={subItem.url}>{subItem.title}</Link>
+                                
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           ))}

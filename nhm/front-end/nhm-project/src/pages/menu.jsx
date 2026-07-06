@@ -55,7 +55,7 @@ const Menu = () => {
     <SidebarProvider>
     <AppSidebar/>
     <SidebarInset className="bg-transparent">
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 relative z-10">
+      <header className="flex h-16 shrink-0 items-center gap-2 px-4 relative z-10">
           <SidebarTrigger className="-ml-1" />
           <Separator
             orientation="vertical"
@@ -75,7 +75,7 @@ const Menu = () => {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex flex-1 flex-col gap-4 p-4 !rounded-none !md:rounded-none">
           <Outlet />
         </div>
     </SidebarInset>

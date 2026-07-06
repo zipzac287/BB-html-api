@@ -32,7 +32,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { GalleryVerticalEndIcon, PlusIcon, MinusIcon, LogOut, KeyRound, ChevronUp, ChevronRight, Folder } from "lucide-react";
+import { GalleryVerticalEndIcon, PlusIcon, MinusIcon, LogOut, KeyRound, ChevronUp, ChevronRight, Folder, ChevronLeft } from "lucide-react";
 import { Link,useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -77,19 +77,29 @@ export function Sidebar1({
         </SidebarGroup>
         </Collapsible>
 
-
+        <Collapsible className="group/collapsible">
         <SidebarGroup>
-            <SidebarGroupLabel>Group2</SidebarGroupLabel>
+            <SidebarGroupLabel asChild>
+                <CollapsibleTrigger className="justify-between">
+                <span>Group2</span>
+                <ChevronLeft className="transition-transform group-data-[state=open]/collapsible:scale-50" />
+                </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
             <SidebarMenu className="gap-2">
                 <SidebarMenuItem>
-                    <SidebarMenuButton>
-                        <LogOut />
-                        <span>Đăng xuất</span>
+                    <SidebarMenuButton asChild>
+                        <Link to="/signout">
+                        <LogOut className="h-4 w-4"/>
+                        Đăng xuất
+                        </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 
             </SidebarMenu>
+            </CollapsibleContent>
         </SidebarGroup>
+        </Collapsible>
     </SidebarContent>
 </Sidebar>
     );
