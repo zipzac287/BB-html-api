@@ -232,8 +232,9 @@ export default function NhapNguoiHien() {
     if (ok) setTimeout(() => navigate("/donors"), 1800);
   };
 
-  const hasBlood = formData.nhomMau && formData.nhomMau !== "Chưa xác định";
-  const bloodKey = `${formData.nhomMau}${formData.rhd}`;
+// Thay thế đoạn code cũ bằng đoạn code kiểm tra an toàn (Optional Chaining) này:
+const hasBlood = formData?.nhomMau && formData.nhomMau !== "Chưa xác định";
+const bloodKey = `${formData.nhomMau}${formData.rhd}`;
 
   // input className helper — error state đổi border đỏ
   const inputCls = (name) =>
@@ -243,7 +244,7 @@ export default function NhapNguoiHien() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-5">
+      <div className="w-full mx-auto px-4 py-6 flex flex-col gap-5">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between flex-wrap gap-3">
