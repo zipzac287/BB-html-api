@@ -25,14 +25,13 @@ app.use(cookieParser());
 // public routes
 app.use('/api/auth',authRoutes);
 // privite routes
+app.use('/api/users',protectedRoute ,userRoute);
 
-app.use(protectedRoute);
-app.use('/api/users', userRoute);
-
-app.use("/api",rootRouter);
+app.use("/api",protectedRoute,rootRouter);
 async function startSever() {
     try {
         await run();
+        
         app.listen(5001, () => {
             console.log('server bắt đầu trên cổng 5001');
 });

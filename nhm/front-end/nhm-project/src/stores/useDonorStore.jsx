@@ -18,13 +18,14 @@ export const useDonorStore = create((set, get) => ({
   loading: false,
   error: null,
   success: null,
+  donors: [],
 
 
   updateField: (name, value) => {
     set((state) => ({
       formData: {
         ...state.formData,
-        [name]: value, // Cập nhật động giá trị của field dựa vào thuộc tính 'name'
+        [name]: value,
       },
     }));
   },
@@ -41,25 +42,65 @@ export const useDonorStore = create((set, get) => ({
       set({ error: errorMsg, loading: false });
     }
   },
+  getDonorbyId: async (cccd) => {
+    set({loading: true, error: null});
+    try {
+      const result = await donorService.getById(cccd);
+      if (!result) {
+        set({error: "Không tìm thấy căn cước công dân", loading: false});
+        return false;
+      }
+
+      set({ formData: result, loading: false});
+      return True;
+    } catch (error) {
+      const errorMsg = err.response?.data?.message || err.message;
+      set({ error: errorMsg, loading: false });
+    }
+  },
 
   // 2. Action: Thêm người hiến máu mới
-  addDonor: async (formData) => {
-    set({ loading: true, error: null });
+  addDonor: async () => {
+  set({ loading: true, error: null, success: null });
+  try {
+    // PHẢI CÓ DÒNG NÀY: Lấy formData hiện tại ra từ Store bằng get()
+    const { formData } = get(); 
+    
+    // Kiểm tra xem formData có tồn tại không để phòng thủ an toàn
+    if (!formData) {
+      throw new Error("Dữ liệu form không hợp lệ hoặc trống rỗng.");
+    }
+
+    // Gọi API qua Axios service
+    const newDonor = await donorService.create(formData);
+    
+    set((state) => ({
+      donors: [newDonor, ...state.donors],
+      success: "Thêm người hiến máu thành công!",
+      loading: false
+    }));
+    return true; // Trả về true để UI biết mà navigate chuyển trang
+  } catch (err) {
+    console.error(" CHI TIẾT LỖI 400 TỪ SERVER:", err.response?.data);
+    
+    const errorMsg = err.response?.data?.message || err.message || "Đã xảy ra lỗi";
+    set({ error: errorMsg, loading: false });
+    return false;
+  }
+},
+  updateDonor: async () => {
+    set({ loading: true, error: null});
     try {
-      // Gọi service Axios gửi data lên backend
-      const newDonor = await donorService.create(formData);
-      
-      // Đẩy thành công -> Cập nhật trực tiếp vào mảng local để UI render lại ngay lập tức
-      set((state) => ({
-        donors: [newDonor, ...state.donors],
-        loading: false,
-      }));
-      
-      return { success: true };
+      const { formData } = get();
+      const donorId = formData.cccd;
+      const updatedDonor = await donorService.update(donorId,formData);
+      set({success: true, loading: false});
+      return true;
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.message;
       set({ error: errorMsg, loading: false });
       return { success: false, error: errorMsg };
     }
   },
+  clearMessages: () => set({ error: null, success: null })
 }));

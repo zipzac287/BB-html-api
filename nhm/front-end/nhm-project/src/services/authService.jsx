@@ -8,6 +8,7 @@ export const authService = {
 
     signIn: async (data) => {
         const res = await api.post('/auth/signin', data, {withCredentials:true});
+        
         return res.data;
     },
     signOut: async () => {

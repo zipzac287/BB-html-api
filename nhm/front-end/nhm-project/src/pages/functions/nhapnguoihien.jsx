@@ -21,7 +21,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 
-import { z } from "zod";
+import { nonnegative, z } from "zod";
 import { useDonorStore } from "@/stores/useDonorStore";
 
 // ─── Constants ───────────────────────────────────────────────
@@ -188,19 +188,17 @@ export default function NhapNguoiHien() {
     formData,
     updateField,
     resetForm,
-    createDonor,
+    addDonor,
     loading,
     error,
     success,
-    clearMessages,
+    clearMessages
   } = useDonorStore();
 
   useEffect(() => {
     if (success || error)
       alertRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [success, error]);
-
-  useEffect(() => () => clearMessages(), [clearMessages]);
 
   const set = (name) => (e) => {
     updateField(name, e.target.value);
@@ -228,10 +226,12 @@ export default function NhapNguoiHien() {
       return;
     }
     setVErr({});
-    const ok = await createDonor();
+    const ok = await addDonor();
     if (ok) setTimeout(() => navigate("/donors"), 1800);
   };
+  const handleTraCuu = async(e) => {
 
+  };
 // Thay thế đoạn code cũ bằng đoạn code kiểm tra an toàn (Optional Chaining) này:
 const hasBlood = formData?.nhomMau && formData.nhomMau !== "Chưa xác định";
 const bloodKey = `${formData.nhomMau}${formData.rhd}`;
@@ -315,8 +315,46 @@ const bloodKey = `${formData.nhomMau}${formData.rhd}`;
 
               {/* Card 1: Thông tin cá nhân */}
               <SectionCard icon={User} title="Thông tin cá nhân" desc="Họ tên, CCCD, ngày sinh, giới tính">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-1">
+                  <FieldGroup
+                    label="Số CCCD / Định danh"
+                    required
+                    hint="Dùng làm mã định danh duy nhất"
+                    error={vErr.cccd}
+                  >
+                    <div className="relative">
+                      <CreditCard size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <Input
+                        id="f-cccd"
+                        value={formData.cccd}
+                        onChange={set("cccd")}
+                        disabled={loading}
+                        placeholder="Nhập CCCD"
+                        inputMode="numeric"
+                        maxLength={12}
+                        className={`pl-9 text-gray-800 placeholder:text-gray-400 ${inputCls("cccd")}`}
+                      />
+                    </div>
+                    
+                  </FieldGroup>
+                  </div>
+                    <div className="sm:col-span-1">
+                    
+                        <Button
+                          type="button"
+                          disabled={loading}
+                          onClick={handleTraCuu}
+                          className="w-full sm:w-1/2 h-8 bg-red-600 hover:bg-red-700 text-white font-medium text-sm gap-2 rounded-lg"
+                        >
+                          Tra cứu dữ liệu
+                        </Button>
+                      
+                      </div>
+                    
+                      <div className="sm:col-span-1 invisible"></div>
+                  
+                  <div className="sm:col-span-1">
                   <FieldGroup label="Họ và tên" required error={vErr.hoTen}>
                     <div className="relative">
                       <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -331,28 +369,8 @@ const bloodKey = `${formData.nhomMau}${formData.rhd}`;
                       />
                     </div>
                   </FieldGroup>
-
-                  <FieldGroup
-                    label="Số CCCD / Định danh"
-                    required
-                    hint="Dùng làm mã định danh duy nhất"
-                    error={vErr.cccd}
-                  >
-                    <div className="relative">
-                      <CreditCard size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                      <Input
-                        id="f-cccd"
-                        value={formData.cccd}
-                        onChange={set("cccd")}
-                        disabled={loading}
-                        placeholder="0123456789"
-                        inputMode="numeric"
-                        maxLength={12}
-                        className={`pl-9 text-gray-800 placeholder:text-gray-400 ${inputCls("cccd")}`}
-                      />
-                    </div>
-                  </FieldGroup>
-
+                  </div>
+                  <div className="sm:col-span-1">
                   <FieldGroup
                     label="Ngày sinh"
                     required
@@ -372,7 +390,8 @@ const bloodKey = `${formData.nhomMau}${formData.rhd}`;
                       />
                     </div>
                   </FieldGroup>
-
+                  </div>
+                  <div className="sm:col-span-1">
                   <FieldGroup label="Giới tính" required>
                     <Select
                       value={formData.gioiTinh}
@@ -389,8 +408,9 @@ const bloodKey = `${formData.nhomMau}${formData.rhd}`;
                       </SelectContent>
                     </Select>
                   </FieldGroup>
-
                 </div>
+                </div>
+                
               </SectionCard>
 
               {/* Card 2: Liên hệ */}

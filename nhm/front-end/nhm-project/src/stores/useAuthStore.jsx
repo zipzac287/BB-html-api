@@ -35,6 +35,9 @@ export const useAuthStore = create(
         try {
             set({loading: true, error: null});
             const data = await authService.signIn(credentials);
+            if (data.accessToken) {
+            localStorage.setItem("accessToken", data.accessToken);
+        }
             set({
                 accessToken: data.accessToken,
                 user: data.user,
