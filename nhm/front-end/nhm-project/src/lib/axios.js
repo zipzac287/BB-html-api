@@ -1,25 +1,36 @@
 
 import axios from 'axios';
 import { useAuthStore } from '@/stores/useAuthStore';
+import createAuthRefreshInterceptor from 'axios-auth-refresh';
 
 const api = axios.create({
     baseURL: 'http://localhost:5001/api',
     withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-    // 🚀 KIỂM TRA: Nếu request có gắn cờ skipAuth: true thì BỎ QUA không gắn Token
-    if (config.skipAuth) {
-        return config;
-    }
+const refreshAuthLogic = async (failedRequest) => {
+    try {
+        
+        // Gọi API refresh token của Backend bằng thực thể axios gốc (tránh lặp vô hạn)
+        const response = await axios.post('http://localhost:5001/api/auth/refresh-token', {}, { withCredentials: true });
+        const { accessToken } = response.data;
 
-    const token = useAuthStore.getState().accessToken;
-    if (token) {
-        config.headers["Authorization"] = `Bearer ${token}`;
-        } else {
-            console.log("CẢNH BÁO: Không tìm thấy token trong localStorage khi gọi API:", config.url);
+        // Lưu Token mới vào bộ nhớ
+        localStorage.setItem("accessToken", accessToken);
+
+        // 🚀 CẬP NHẬT LẠI TOKEN MỚI CHO CHÍNH REQUEST BỊ LỖI BAN ĐẦU
+        failedRequest.response.config.headers['Authorization'] = `Bearer ${accessToken}`;
+        return Promise.resolve();
+    } catch (error) {
+        localStorage.removeItem("accessToken");
+        return Promise.reject(error);
     }
-    return config;
+};
+
+createAuthRefreshInterceptor(api, refreshAuthLogic, {
+    statusCodes: [401], // Kích hoạt khi Backend trả về mã lỗi 401
+    pauseInstanceWhileRefreshing: true // Chặn các request chức năng khác lại, đợi lấy xong token mới cho đi tiếp
 });
+
 
 export default api;

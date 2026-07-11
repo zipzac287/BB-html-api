@@ -227,7 +227,6 @@ export default function NhapNguoiHien() {
     }
     setVErr({});
     const ok = await addDonor();
-    if (ok) setTimeout(() => navigate("/donors"), 1800);
   };
   const handleTraCuu = async(e) => {
 

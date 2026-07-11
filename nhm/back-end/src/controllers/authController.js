@@ -103,6 +103,29 @@ const authController = {
 
             return res.status(500).json({success:false,message: error.message});
             }
+        },
+        refreshToken: async (req,res) => {
+            try {
+                const tokencookie = req.cookies?.refreshToken;
+                if (!tokencookie) {
+                    return res.status(401).json({success: false, message: "Không tìm thấy refreshToken"});
+                }
+                const user = await Session.findOne({ refreshToken: tokencookie}); 
+                if (!user) {
+                    return res.status(403).json({ success: false, message: "Phiên đăng nhập đã bị hủy hoặc không hợp lệ" });
+                }
+
+                const newAccessToken = jwt.sign(
+                    {userId: user.userId},
+                    process.env.ACCESS_TOKEN_SECRET,
+                    {expiresIn: ACCESS_TOKEN_TTL}
+                );
+                
+                return res.json({accessToken: newAccessToken});
+    
+            } catch (error) {
+                return res.status(500).json({success: false, message: error.message});
+            }
         }
     };
     export default authController;

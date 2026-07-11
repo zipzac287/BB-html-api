@@ -6,7 +6,7 @@ export const protectedRoute = (req,res,next) => {
         // lấy accesstoken client gửi từ header
         const authHeader = req.headers["authorization"];
         const token = authHeader && authHeader.split(" ")[1];
-        
+        console.log(token);
         if (!token) {
             return res.status(401).json({message:"không tìm thấy token"});
         }
@@ -17,7 +17,8 @@ export const protectedRoute = (req,res,next) => {
 
                 return res.status(401).json({success: false,message: "Accesstoken hết hạn hoặc không hợp lệ"});
             }
-            const user = await Users.findById(decodedUsers.userId).select('-hashedPassword');
+        console.log(decodedUsers.userId);
+        const user = await Users.findById(decodedUsers.userId);
             // tìm user
             if (!user) {
                 return res.status(404).json({success:false, message:"user không tồn tại"});
