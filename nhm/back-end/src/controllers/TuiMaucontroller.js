@@ -2,9 +2,16 @@ import mongoose from "mongoose";
 import { TuiMau } from '../../services/services.js';
 import { request } from "express";
 
+const MTP_prefix = {
+    'KHC' : 'R',
+    'HTTDL' : 'FP',
+    'TCPOOL' : 'P',
+    'TL' : 'CRY'
+};
+
 export const getTuiMauServices =  async (request,response) => {
     try { 
-        const {matm,com_type,blood_type,rhd,thetich,ngayhien,hsd,tinhtrang,location} = request.query;
+        const {matm,com_type,blood_type,rhd,thetich,ngayhien,hsd,tinhtrang,location,nhm_id,parent_id} = request.query;
 
         const queryFilter = { ...request.query };
 
@@ -13,7 +20,7 @@ export const getTuiMauServices =  async (request,response) => {
                 delete queryFilter[key];
             }
         });
-        
+
         const danhSach = (await TuiMau.find(queryFilter).populate('nhm_id'));
 
         response.status(200).json({

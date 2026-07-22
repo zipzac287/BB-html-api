@@ -53,7 +53,16 @@ const TuiMauSchema = new mongoose.Schema({
     nhm_id: {   
         type : mongoose.Schema.Types.ObjectId,
         ref: 'Donor'
-    }
+    },
+    parent_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TuiMau',
+        default: null,
+    },
+    split_level: {
+        type: Number,
+        default: 0,
+    },
 },{ timestamps : true,
     collection : 'tuimau'
  });
@@ -256,6 +265,56 @@ const capMauSchema = new mongoose.Schema({
  collection: 'capmau'
 });
 
+const DonorSessionSchema = new mongoose.Schema({
+dsession_id : {
+type: String,
+required: true,
+unique: true 
+},
+donor_id : {
+type: mongoose.Schema.Types.ObjectId,
+ref: 'Donor',
+required: true
+},
+ngayhien: {
+type: Date,
+required: true
+},
+thetichhien: {
+type: Number,
+required: true
+},
+ha_tthu: {
+type: Number
+},
+ha_ttruong: {
+type: Number
+},
+nhiptim: {
+type: Number
+},
+cannang: {
+type: Number,
+},
+hb: {
+type: Number,
+},
+hbtest: {
+type: String
+},
+trihoan: {
+type: Boolean
+},
+ngaytrihoan: {
+type: Date,
+},
+lidotrihoan: {
+type: String,
+},
+},{
+    timestamps: true,
+    collection: 'donorsession'
+});
 // ============================================
 // INDEXES
 // ============================================
@@ -279,6 +338,9 @@ capMauSchema.index({ patient_id: 1 });
 capMauSchema.index({ matm: 1 });
 capMauSchema.index({ ngaycap: 1 });
 
+DonorSessionSchema.index({ donor_id: 1 });
+DonorSessionSchema.index({ ngayhien: 1 });
+
 // ============================================
 // MODELS EXPORT
 // ============================================
@@ -287,7 +349,7 @@ export const TuiMau = mongoose.model('TuiMau', TuiMauSchema);
 export const XetNghiem = mongoose.model('XetNghiem', xetNghiemSchema);
 export const BloodRequest = mongoose.model('BloodRequest', bloodRequestSchema);
 export const CapMau = mongoose.model('CapMau', capMauSchema);
-
+export const DonorSessions = mongoose.model('DonorSessions', DonorSessionSchema);
 
 
 

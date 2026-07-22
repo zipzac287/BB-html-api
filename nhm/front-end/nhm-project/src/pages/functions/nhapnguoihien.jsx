@@ -192,7 +192,8 @@ export default function NhapNguoiHien() {
     loading,
     error,
     success,
-    clearMessages
+    clearMessages,
+    getDonorbyId,
   } = useDonorStore();
 
   useEffect(() => {
@@ -228,9 +229,10 @@ export default function NhapNguoiHien() {
     setVErr({});
     const ok = await addDonor();
   };
-  const handleTraCuu = async(e) => {
-
+  const handleTraCuu = async() => {
+    await getDonorbyId(formData.cccd);
   };
+    
 // Thay thế đoạn code cũ bằng đoạn code kiểm tra an toàn (Optional Chaining) này:
 const hasBlood = formData?.nhomMau && formData.nhomMau !== "Chưa xác định";
 const bloodKey = `${formData.nhomMau}${formData.rhd}`;

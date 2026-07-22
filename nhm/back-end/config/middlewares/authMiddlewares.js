@@ -18,7 +18,7 @@ export const protectedRoute = (req,res,next) => {
                 return res.status(401).json({success: false,message: "Accesstoken hết hạn hoặc không hợp lệ"});
             }
         console.log(decodedUsers.userId);
-        const user = await Users.findById(decodedUsers.userId);
+        const user = await Users.findById(decodedUsers.userId).select('-hashedPassword');
             // tìm user
             if (!user) {
                 return res.status(404).json({success:false, message:"user không tồn tại"});

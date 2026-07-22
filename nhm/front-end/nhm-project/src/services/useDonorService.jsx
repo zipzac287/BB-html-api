@@ -63,10 +63,10 @@ export const getAll = async (filters = {}) => {
   };
 };
 
-export const getById = async (donorId) => {
+export const getById = async (cccd) => {
   // Gửi qua query param giống cấu hình cũ của bạn
-  const response = await api.get('/', { 
-    params: { donor_id: donorId } 
+  const response = await api.get('/Donor', { 
+    params: { donor_id: cccd } 
   });
   const json = response.data;
 

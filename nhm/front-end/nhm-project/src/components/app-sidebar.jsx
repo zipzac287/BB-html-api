@@ -1,6 +1,4 @@
 import * as React from "react"
-
-import { SearchForm } from "@/components/search-form"
 import {
   Collapsible,
   CollapsibleContent,
@@ -27,7 +25,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { GalleryVerticalEndIcon, PlusIcon, MinusIcon, LogOut, KeyRound, ChevronUp } from "lucide-react";
+import { PlusIcon, MinusIcon, LogOut, KeyRound, ChevronUp } from "lucide-react";
 import { Link,useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -46,7 +44,7 @@ export const data = {
       url: "/nguoi-hien-mau",
       items: [
         { title: "Nhập thông tin người hiến", url: "/nguoi-hien-mau/nhap-thong-tin" },
-        { title: "Tìm thông tin người hiến", url: "/nguoi-hien-mau/tim-thong-tin" },
+        { title: "Nhập thông tin lần hiến", url: "/nguoi-hien-mau/nhap-lan-hien" },
         { title: "Thống kê người hiến", url: "/nguoi-hien-mau/thong-ke" },
       ],
     },
