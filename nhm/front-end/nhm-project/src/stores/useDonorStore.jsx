@@ -1,6 +1,7 @@
 // stores/useDonorStore.js
 import { create } from "zustand";
 import donorService from "@/services/useDonorService"; 
+import { add } from "date-fns";
 
 export const useDonorStore = create((set, get) => ({
   formData: {
@@ -29,6 +30,7 @@ export const useDonorStore = create((set, get) => ({
       },
     }));
   },
+  isEditing: false,
   // 1. Action: Lấy danh sách người hiến máu
   getDonors: async (filters = {}) => {
     set({ loading: true, error: null });
@@ -56,10 +58,11 @@ export const useDonorStore = create((set, get) => ({
       }
 
       set({ formData: result, loading: false});
-      return True;
+      return true;
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message;
       set({ error: errorMsg, loading: false });
+      return false;
     }
   },
 
@@ -92,7 +95,7 @@ export const useDonorStore = create((set, get) => ({
     return false;
   }
 },
-  updateDonor: async () => {
+  updateDonor: async (formData) => {
     set({ loading: true, error: null});
     try {
       const { formData } = get();
@@ -103,8 +106,26 @@ export const useDonorStore = create((set, get) => ({
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.message;
       set({ error: errorMsg, loading: false });
-      return { success: false, error: errorMsg };
+      return false;
     }
   },
+  saveDonor: async() => {
+    set ({ loading: true, error: null});
+
+    const { formData, addDonor, updateDonor,getDonorbyId } = get();
+    const cccd = formData?.cccd?.trim();
+    try {
+      const isEdit = await donorService.getById(cccd);
+      if (isEdit) {
+        return await updateDonor();
+      } else {
+        return await addDonor();
+      }
+    } catch (error) {
+      const errorMsg = err.response?.data?.message || err.message;
+      set({ error: errorMsg, loading: false });
+      return false;
+    }
+    },
   clearMessages: () => set({ error: null, success: null })
 }));

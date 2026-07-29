@@ -82,7 +82,7 @@ export const create = async (formData) => {
 
 export const update = async (donorId, formData) => {
   const payload = toPayload(formData);
-  const response = await apiClient.put(`/${encodeURIComponent(donorId)}`, payload);
+  const response = await api.put(`/Donor/${encodeURIComponent(donorId)}`, payload);
   return fromResponse(response.data.data);
 };
 

@@ -10,6 +10,8 @@ import { data } from './components/app-sidebar';
 import NhapNguoiHien from "./pages/functions/nhapnguoihien";
 import { useAuthStore } from './stores/useAuthStore';
 import Dashboard from './pages/functions/dashboard';
+import { useEffect } from 'react';
+import { check } from 'zod';
 // 3. Tạo bảng ánh xạ: URL nào -> Component đó
 const componentMapping = {
   "/nguoi-hien-mau/nhap-thong-tin": <NhapNguoiHien />,
@@ -17,7 +19,18 @@ const componentMapping = {
 };
 
 function App() {
-  const { user } = useAuthStore();
+  const { user,checkAuth, loading } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <span>Đang kiểm tra phiên làm việc...</span>
+      </div>
+    );
+  }
   return (
     <BrowserRouter>
       <Routes>

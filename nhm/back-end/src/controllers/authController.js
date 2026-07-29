@@ -75,8 +75,7 @@ const authController = {
             // trả access token về trong res
             res.status(200).json({success: true, message:`User ${username} đăng nhập thành công`, accessToken,
                 user: {
-        _id: user._id,
-        username: user.username}});
+        _id: user._id}});
         } catch (error) {
             res.status(500).json({success:false,message: error.message});
         }
@@ -126,6 +125,6 @@ const authController = {
             } catch (error) {
                 return res.status(500).json({success: false, message: error.message});
             }
-        }
+        },
     };
     export default authController;

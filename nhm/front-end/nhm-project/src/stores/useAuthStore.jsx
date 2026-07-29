@@ -6,11 +6,10 @@ import { authService } from '@/services/authService';
 
 
 export const useAuthStore = create(
-    persist(
-        (set,get) => ({
+        (set) => ({
     accessToken: null,
     user: null,
-    loading: false,
+    loading: true,
     error: null,
 
     signUp: async (data) => {
@@ -43,7 +42,7 @@ export const useAuthStore = create(
                 user: data.user,
                 loading:false
             });
-            
+            return true
         } catch (error) {
             console.error(`Chi tiết lỗi API:`, error.response?.data);
             const errorMsg = error.response?.data?.message || `Lỗi khi đăng nhập`;
@@ -62,23 +61,39 @@ export const useAuthStore = create(
     loading: false,
     error: null
   });
-
-  // 2. XÓA SẠCH BỘ NHỚ LƯU TRỮ CỨNG DƯỚI LOCALSTORAGE
-  try {
-    localStorage.removeItem('nganhangmau-auth-storage'); // Cách xóa trực tiếp, an toàn tuyệt đối không lo lỗi thư viện
-  } catch (e) {
-    console.error("Lỗi xóa localStorage:", e);
-  }
-
-  // 3. CHẠY NGẦM GỌI API SANG BACKEND (DÙ THÀNH CÔNG HAY THẤT BẠI THÌ USER ĐÃ THOÁT)
+    localStorage.removeItem('accessToken');
   try {
     await authService.signOut();
   } catch (error) {
     console.error(`Chi tiết lỗi API SignOut ngầm:`, error.response?.data);
   }
 },
-    }),
-    {
-        name: 'nganhangmau-auth-storage', // Tên key lưu trữ dưới LocalStorage của trình duyệt
-    }
-));
+    checkAuth: async () => {
+        try {
+            set({ loading: true, error: null});
+            const data = await authService.checkAuth();
+            const newAccessToken = data?.accessToken;
+
+            if (!newAccessToken) {
+                throw new Error("không nhận được accessToken");
+            }
+            localStorage.setItem("accessToken", newAccessToken);
+            set({ accessToken: newAccessToken });
+
+            const meData = await authService.authMe(newAccessToken);
+            set({
+                user: meData.user,
+                loading: false
+            });
+            return true;
+        } catch (error) {
+            set({
+                user: null,
+                accessToken: null,
+                loading: false,
+            });
+            return false;
+        }
+    }    
+})  
+    )

@@ -194,6 +194,7 @@ export default function NhapNguoiHien() {
     success,
     clearMessages,
     getDonorbyId,
+    saveDonor,
   } = useDonorStore();
 
   useEffect(() => {
@@ -227,7 +228,7 @@ export default function NhapNguoiHien() {
       return;
     }
     setVErr({});
-    const ok = await addDonor();
+    const ok = await saveDonor();
   };
   const handleTraCuu = async() => {
     await getDonorbyId(formData.cccd);

@@ -7,6 +7,16 @@ const api = axios.create({
     baseURL: 'http://localhost:5001/api',
     withCredentials: true,
 });
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 const refreshAuthLogic = async (failedRequest) => {
     try {
@@ -23,6 +33,8 @@ const refreshAuthLogic = async (failedRequest) => {
         return Promise.resolve();
     } catch (error) {
         localStorage.removeItem("accessToken");
+        localStorage.removeItem('nganhangmau-auth-storage');
+        window.location.href = '/login';
         return Promise.reject(error);
     }
 };
@@ -31,6 +43,4 @@ createAuthRefreshInterceptor(api, refreshAuthLogic, {
     statusCodes: [401], // Kích hoạt khi Backend trả về mã lỗi 401
     pauseInstanceWhileRefreshing: true // Chặn các request chức năng khác lại, đợi lấy xong token mới cho đi tiếp
 });
-
-
 export default api;
