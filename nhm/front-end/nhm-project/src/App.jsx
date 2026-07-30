@@ -8,6 +8,7 @@ import { data } from './components/app-sidebar';
 
 // 2. Import tất cả các Pages (Giao diện tính năng)
 import NhapNguoiHien from "./pages/functions/nhapnguoihien";
+import Nhaplanhien from './pages/functions/nhaplanhien';
 import { useAuthStore } from './stores/useAuthStore';
 import Dashboard from './pages/functions/dashboard';
 import { useEffect } from 'react';
@@ -15,7 +16,8 @@ import { check } from 'zod';
 // 3. Tạo bảng ánh xạ: URL nào -> Component đó
 const componentMapping = {
   "/nguoi-hien-mau/nhap-thong-tin": <NhapNguoiHien />,
-  "/tong-quan/dashboard": <Dashboard />
+  "/tong-quan/dashboard": <Dashboard />,
+  "/nguoi-hien-mau/nhap-lan-hien": <Nhaplanhien />,
 };
 
 function App() {
