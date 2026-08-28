@@ -8,7 +8,7 @@ const uri = process.env.Mongdb_connectionstring;
 
 export async function run() {
   
-  try {
+  try { 
     await mongoose.connect(uri);
     console.log("Kết nối CSDL thành công");
   } catch (error) {

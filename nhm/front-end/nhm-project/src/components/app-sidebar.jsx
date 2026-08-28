@@ -29,7 +29,6 @@ import { PlusIcon, MinusIcon, LogOut, KeyRound, ChevronUp } from "lucide-react";
 import { Link,useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-// This is sample data.
 export const data = {
   navMain: [
     {

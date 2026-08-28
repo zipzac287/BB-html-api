@@ -14,7 +14,7 @@ const TuiMauSchema = new mongoose.Schema({
             'MTP',
             'KHC',
             'HTTDL',
-            'TC',
+            'TCGT',
             'TPPOOL',
             'TL'
         ],
@@ -43,16 +43,18 @@ const TuiMauSchema = new mongoose.Schema({
     },
     tinhtrang: {
         type : String,
-        enum: ['Nhập kho thô','Đã chiết tách','Nhập kho sạch','Đã cấp','Đã hủy'],
+        enum: ['Nhập kho thô','Đã chiết tách','Nhập kho sạch','Đã cấp','Đã hủy',"Phế thải"],
         required : true
     },
     location: {
         type: String,
         required: true
     },
-    nhm_id: {   
+    dsession_id: {   
         type : mongoose.Schema.Types.ObjectId,
-        ref: 'Donor'
+        ref: 'DonorSession',
+        sparse: true,
+        default: null,
     },
     parent_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -63,6 +65,9 @@ const TuiMauSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    ngaychiettach: {
+        type: Date,
+    }
 },{ timestamps : true,
     collection : 'tuimau'
  });
@@ -266,11 +271,6 @@ const capMauSchema = new mongoose.Schema({
 });
 
 const DonorSessionSchema = new mongoose.Schema({
-dsession_id : {
-type: String,
-required: true,
-unique: true 
-},
 donor_id : {
 type: mongoose.Schema.Types.ObjectId,
 ref: 'Donor',
@@ -311,10 +311,26 @@ type: Date,
 lidotrihoan: {
 type: String,
 },
+mstui_id: {
+type: mongoose.Schema.Types.ObjectId,
+ref: "TuiMau",
+unique: true,
+sparse: true,
+default: null
+},
+mstui: {
+type:String,
+unique: true,
+},
+loaicp: {
+type: String,
+},
 },{
     timestamps: true,
     collection: 'donorsession'
 });
+
+
 // ============================================
 // INDEXES
 // ============================================
@@ -349,7 +365,7 @@ export const TuiMau = mongoose.model('TuiMau', TuiMauSchema);
 export const XetNghiem = mongoose.model('XetNghiem', xetNghiemSchema);
 export const BloodRequest = mongoose.model('BloodRequest', bloodRequestSchema);
 export const CapMau = mongoose.model('CapMau', capMauSchema);
-export const DonorSessions = mongoose.model('DonorSessions', DonorSessionSchema);
+export const DonorSessions = mongoose.model('DonorSession', DonorSessionSchema);
 
 
 

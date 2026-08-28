@@ -6,7 +6,6 @@ export const protectedRoute = (req,res,next) => {
         // lấy accesstoken client gửi từ header
         const authHeader = req.headers["authorization"];
         const token = authHeader && authHeader.split(" ")[1];
-        
         if (!token) {
             return res.status(401).json({message:"không tìm thấy token"});
         }

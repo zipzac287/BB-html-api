@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { TuiMau } from '../../services/services.js';
+import { DonorSessions, TuiMau } from '../../services/services.js';
 import { request } from "express";
 
 const MTP_prefix = {
@@ -11,7 +11,7 @@ const MTP_prefix = {
 
 export const getTuiMauServices =  async (request,response) => {
     try { 
-        const {matm,com_type,blood_type,rhd,thetich,ngayhien,hsd,tinhtrang,location,nhm_id,parent_id} = request.query;
+        const {matm,com_type,blood_type,rhd,thetich,ngayhien,hsd,tinhtrang,location,dsession_id,parent_id,split_level} = request.query;
 
         const queryFilter = { ...request.query };
 
@@ -21,7 +21,7 @@ export const getTuiMauServices =  async (request,response) => {
             }
         });
 
-        const danhSach = (await TuiMau.find(queryFilter).populate('nhm_id'));
+        const danhSach = (await TuiMau.find(queryFilter).populate('dsession_id'));
 
         response.status(200).json({
             success:true,
@@ -31,7 +31,7 @@ export const getTuiMauServices =  async (request,response) => {
 
     } catch (error) {
         console.error("Lỗi khi gọi getTuiMauServices:", error);
-        response.status(500).json({message: "Lỗi hệ thống"});
+        response.status(500).json({message: error});
     }
 };
 
@@ -45,6 +45,9 @@ export const createTuiMauServices = async (request,response) => {
                 message: `Mã túi máu ${dataInput.matm} đã tồn tại`
             });
         } 
+        if (!dataInput.dsession_id || dataInput.dsession_id.trim() === '') {
+            delete dataInput.dsession_id;
+        }
         const newTuiMau = new TuiMau(dataInput);
         const savedTuiMau = await newTuiMau.save();
 
@@ -55,7 +58,7 @@ export const createTuiMauServices = async (request,response) => {
         });
     } catch (error) {
         console.error('Lỗi khi nhập túi máu:', error),
-        response.status(500).json({message: "Lỗi hệ thống"});
+        response.status(500).json({message: error});
     }
 };
 
@@ -114,3 +117,105 @@ export const deleteTuiMauServices = async (request,response) => {
         });
     }
 };
+export const updatedTuiMau = async (req,res) => {
+    try {
+        const { matm, _id } = req.body;
+        if (!matm || !_id) {
+            return res.status(400).json({
+            success: false,
+            message: "Thiếu thông tin mã túi máu (mstui) hoặc id phiên hiến (_id)",
+            });
+        }
+        const updatetm = await TuiMau.findOneAndUpdate({matm: matm},{dsession_id: _id},{new: true});
+     
+        if (!updatetm) {
+            return res.status(404).json({
+                    success:false,
+                    message:"Không update được dsession_id trong TuiMau"
+                });
+        }
+        const updateses = await DonorSessions.findByIdAndUpdate(_id,{mstui_id: updatetm._id}, {new: true});
+        if (!updateses) {
+            return res.status(404).json({
+                    success:false,
+                    message:"Không update được mstui_id trong DonorSession"
+                });
+        }
+        return res.status(200).json({
+            success:true,
+            message:"Update thành công"
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Lỗi hệ thống.",
+            error: error.message
+        });
+    }
+};
+
+export const splitTM = async (req,res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        
+        const { tuichaid, tuicon} = req.body;
+
+        const datatuicha = await TuiMau.findById(tuichaid).session(session);
+        if (!datatuicha) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({
+                success: false,
+                message:"Không tìm thấy túi cha"
+            });
+        }
+        if (datatuicha.tinhtrang === "Đã chiết tách") {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(400).json({
+                success: false,
+                message:"Túi cha đã được chiết tách"
+            });
+        }
+        datatuicha.tinhtrang = "Đã chiết tách";
+        datatuicha.location = "Đã chiết tách";
+        await datatuicha.save({ session });
+
+        const datatuicon = tuicon.map((child) => ({
+            matm: child.matm,
+            com_type: child.com_type,
+            thetich: child.thetich,
+            location: child.location,
+            hsd: child.hsd,
+            ngaychiettach: child.ngaychiettach,
+
+            blood_type: datatuicha.blood_type,
+            rhd: datatuicha.rhd,
+            ngayhien: datatuicha.ngayhien,
+            dsession_id: datatuicha.dsession_id,
+
+            parent_id: datatuicha._id,
+            split_level: (datatuicha.split_level || 0) + 1,
+
+            tinhtrang: "Nhập kho thô",
+        }));
+        const createdtuicon = await TuiMau.insertMany(datatuicon, {session});
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({
+            success: true,
+            message:"Chiết tách thành công",
+            data: createdtuicon,
+        })
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({
+            success: false,
+            message:"Lỗi hệ thống",
+            error: error.message,
+        });
+    }
+}

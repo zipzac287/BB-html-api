@@ -18,7 +18,7 @@ const authController = {
                 return res.status(400).json({success: false,message:"Không thể thiếu username hoặc password"})
             } 
             // kiểm tra có trùng username
-            const duplicate = await Users.findOne({username});
+            const duplicate = await Users.findOne({username:username});
 
             if (duplicate) return res.status(409).json({success:false,message:"Username đã tồn tại"});
             // mã hóa password
@@ -42,7 +42,7 @@ const authController = {
                 return res.status(400).json({success: false,message:"Không thể thiếu username hoặc password"})
             }
             // lấy username
-            const user = await Users.findOne({username});
+            const user = await Users.findOne({username:username});
             if (!user)
                 res.status(401).json({success: false,message:"username hoặc password không chính xác"});
             //kiểm tra password
@@ -83,7 +83,7 @@ const authController = {
         signOut: async (req,res) => {
             try {
             // lấy refreshtoken từ cookie
-            const token = req.cookie?.refreshToken;
+            const token = req.cookies?.refreshToken;
             if (token) {
                  // lấy refreshtoken từ trong Db
                 await Session.deleteOne({refreshToken: token});
@@ -93,7 +93,8 @@ const authController = {
             res.clearCookie('refreshToken', {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'strict'
+                sameSite: 'strict',
+                path: '/'
             });
 
             return res.status(204); 

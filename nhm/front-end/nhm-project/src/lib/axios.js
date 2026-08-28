@@ -9,7 +9,7 @@ const api = axios.create({
 });
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = useAuthStore.getState().accessToken;
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -26,21 +26,25 @@ const refreshAuthLogic = async (failedRequest) => {
         const { accessToken } = response.data;
 
         // Lưu Token mới vào bộ nhớ
-        localStorage.setItem("accessToken", accessToken);
+        useAuthStore.getState().setAccessToken(accessToken);
 
         // 🚀 CẬP NHẬT LẠI TOKEN MỚI CHO CHÍNH REQUEST BỊ LỖI BAN ĐẦU
         failedRequest.response.config.headers['Authorization'] = `Bearer ${accessToken}`;
         return Promise.resolve();
     } catch (error) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem('nganhangmau-auth-storage');
-        window.location.href = '/login';
+        useAuthStore.getState().signOut();
+
+        if(window.location.pathname !== '/login') {
+            window.Location.href = '/login';
+        };
         return Promise.reject(error);
     }
 };
 
 createAuthRefreshInterceptor(api, refreshAuthLogic, {
-    statusCodes: [401], // Kích hoạt khi Backend trả về mã lỗi 401
-    pauseInstanceWhileRefreshing: true // Chặn các request chức năng khác lại, đợi lấy xong token mới cho đi tiếp
+    statusCodes: [401], 
+    pauseInstanceWhileRefreshing: true ,
+    shouldResetQueryChain: false,
+    skipWhileRefreshing: true,// Chặn các request chức năng khác lại, đợi lấy xong token mới cho đi tiếp
 });
 export default api;

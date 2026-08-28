@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { persist } from 'zustand/middleware';
 import { authService } from '@/services/authService';
+import api from '@/lib/axios';
 
 
 export const useAuthStore = create(
@@ -11,6 +12,8 @@ export const useAuthStore = create(
     user: null,
     loading: true,
     error: null,
+
+    setAccessToken: (token) => set({accessToken: token}),
 
     signUp: async (data) => {
 
@@ -35,16 +38,16 @@ export const useAuthStore = create(
             set({loading: true, error: null});
             const data = await authService.signIn(credentials);
             if (data.accessToken) {
-            localStorage.setItem("accessToken", data.accessToken);
+            const { accessToken, user } = data;
         }
             set({
                 accessToken: data.accessToken,
                 user: data.user,
                 loading:false
             });
-            return true
+            return { success: true, message:"Đăng nhập thành công"};
         } catch (error) {
-            console.error(`Chi tiết lỗi API:`, error.response?.data);
+            console.error(`Chi tiết lỗi API:`, error);
             const errorMsg = error.response?.data?.message || `Lỗi khi đăng nhập`;
             toast.error(errorMsg)
             set ({
@@ -55,17 +58,19 @@ export const useAuthStore = create(
         }
     },
     signOut: async () => {
+    
+  try {
+    await authService.signOut();
+  } catch (error) {
+    console.error(`Chi tiết lỗi API SignOut ngầm:`, error.response?.data || error.message);
+  } finally {
+    
     set({
     user: null,
     accessToken: null,
     loading: false,
     error: null
   });
-    localStorage.removeItem('accessToken');
-  try {
-    await authService.signOut();
-  } catch (error) {
-    console.error(`Chi tiết lỗi API SignOut ngầm:`, error.response?.data);
   }
 },
     checkAuth: async () => {
@@ -77,10 +82,13 @@ export const useAuthStore = create(
             if (!newAccessToken) {
                 throw new Error("không nhận được accessToken");
             }
-            localStorage.setItem("accessToken", newAccessToken);
-            set({ accessToken: newAccessToken });
+            const {accessToken} = data;
+            set({
+                accessToken: newAccessToken,
+             });
 
             const meData = await authService.authMe(newAccessToken);
+            const {user} = meData.user;
             set({
                 user: meData.user,
                 loading: false

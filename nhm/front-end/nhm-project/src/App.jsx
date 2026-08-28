@@ -7,23 +7,33 @@ import Test from './pages/test';
 import { data } from './components/app-sidebar';
 
 // 2. Import tất cả các Pages (Giao diện tính năng)
-import NhapNguoiHien from "./pages/functions/nhapnguoihien";
-import Nhaplanhien from './pages/functions/nhaplanhien';
+import NhapNguoiHien from "./pages/functions/nhm/nhapnguoihien";
+import Nhaplanhien from './pages/functions/nhm/nhaplanhien';
+import ThongKeLanHien from './pages/functions/nhm/thongkelh';
+import NhapTTTho from './pages/functions/khotho/nhaptttho';
+import ChietTachTuiMau from './pages/functions/khotho/chiettach';
+import XetNghiemPage from './pages/functions/khotho/xetnghiem';
 import { useAuthStore } from './stores/useAuthStore';
 import Dashboard from './pages/functions/dashboard';
 import { useEffect } from 'react';
 import { check } from 'zod';
+
 // 3. Tạo bảng ánh xạ: URL nào -> Component đó
 const componentMapping = {
   "/nguoi-hien-mau/nhap-thong-tin": <NhapNguoiHien />,
   "/tong-quan/dashboard": <Dashboard />,
   "/nguoi-hien-mau/nhap-lan-hien": <Nhaplanhien />,
+  "/nguoi-hien-mau/thong-ke": <ThongKeLanHien />,
+  "/quan-ly-kho-tho/nhap-truoc-tiep": <NhapTTTho />,
+  "/quan-ly-kho-tho/chiet-tach": <ChietTachTuiMau />,
+  "/quan-ly-kho-tho/sang-loc": <XetNghiemPage />,
 };
 
 function App() {
   const { user,checkAuth, loading } = useAuthStore();
 
   useEffect(() => {
+    
     checkAuth();
   }, []);
   if (loading) {

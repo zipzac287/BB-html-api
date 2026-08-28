@@ -52,13 +52,14 @@ export const useDonorStore = create((set, get) => ({
         throw new Error("Chưa nhập CCCD");
       }
       const result = await donorService.getById(cccd);
+
       if (!result) {
         set({error: "Không tìm thấy căn cước công dân", loading: false});
         return false;
       }
 
       set({ formData: result, loading: false});
-      return true;
+      return result;
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message;
       set({ error: errorMsg, loading: false });
@@ -100,7 +101,7 @@ export const useDonorStore = create((set, get) => ({
     try {
       const { formData } = get();
       const donorId = formData.cccd;
-      const updatedDonor = await donorService.update(donorId,formData);
+      const updatedDonor = await donorService.update(donorId, formData);
       set({success: true, loading: false});
       return true;
     } catch (err) {

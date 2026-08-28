@@ -90,7 +90,6 @@ const donorSchema = z.object({
       "Vui lòng chọn nhóm máu ABO."
     ),
 
-  // các field còn lại không cần validate — luôn pass
   gioiTinh:         z.string().optional(),
   rhd:              z.string().optional(),
   diaChi:           z.string().optional(),
